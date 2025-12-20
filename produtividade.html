@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtividade - Gupy</title>
+    <title>Dashboard Produtividade - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --success: #059669; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -16,7 +16,7 @@
         .kpi-label { font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase; }
         .kpi-value { font-size: 1.4rem; font-weight: 800; }
         .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; color: white; background: var(--primary); font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1000px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
         th { background: #f1f5f9; padding: 12px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
@@ -40,9 +40,12 @@
 
 <div class="card">
     <div style="display:flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
-        <input type="file" id="excel-file" accept=".xlsx" style="font-size: 0.8rem;">
-        <button class="btn" onclick="processarExcel()">Subir Planilha</button>
-        <input type="month" id="filtro-mes" onchange="carregarDados()" style="padding:8px;">
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Pode selecionar várias planilhas de uma só vez:</label>
+            <input type="file" id="excel-files" accept=".xlsx" multiple style="font-size: 0.8rem;">
+            <button class="btn" onclick="processarMultiplosExcel()">Subir Planilhas</button>
+        </div>
+        <div><input type="month" id="filtro-mes" onchange="carregarDados()" style="padding:8px;"></div>
     </div>
 </div>
 
@@ -64,69 +67,99 @@
 
     document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
-    async function processarExcel() {
-        const file = document.getElementById('excel-file').files[0];
-        if(!file) return;
-        const fn = file.name.replace('.xlsx', '');
-        const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            const inserts = json.map(r => ({
-                usuario_id: r.id_assistente,
-                fifo: Number(r.documentos_validados_fifo || 0),
-                gradual_total: Number(r.documentos_validados_gradual_total || 0),
-                gradual_parcial: Number(r.documentos_validados_gradual_parcial || 0),
-                perfil_fc: Number(r.documentos_validados_perfil_fc || 0),
-                quantidade: Number(r.documentos_validados || 0),
-                data_referencia: dr, nome_arquivo: file.name
-            })).filter(x => x.usuario_id);
-            const { error } = await _supabase.from('producao').insert(inserts);
-            if(error) alert("Erro ou data já importada."); else { alert("Sucesso!"); carregarDados(); }
-        };
-        reader.readAsArrayBuffer(file);
+    async function processarMultiplosExcel() {
+        const files = document.getElementById('excel-files').files;
+        if(files.length === 0) return alert("Selecione pelo menos um arquivo!");
+
+        for(let file of files) {
+            const fn = file.name.replace('.xlsx', '');
+            if(!/^\d{8}$/.test(fn)) {
+                console.log("Arquivo ignorado por nome inválido:", file.name);
+                continue;
+            }
+            const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
+            
+            await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    const ins = json.map(r => ({
+                        usuario_id: r.id_assistente,
+                        fifo: Number(r.documentos_validados_fifo || 0),
+                        gradual_total: Number(r.documentos_validados_gradual_total || 0),
+                        gradual_parcial: Number(r.documentos_validados_gradual_parcial || 0),
+                        perfil_fc: Number(r.documentos_validados_perfil_fc || 0),
+                        quantidade: Number(r.documentos_validados || 0),
+                        data_referencia: dr, nome_arquivo: file.name
+                    })).filter(x => x.usuario_id);
+                    
+                    const { error } = await _supabase.from('producao').insert(ins);
+                    if(error) console.log("Erro no arquivo " + file.name + ": " + error.message);
+                    resolve();
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        alert("Processamento concluído!");
+        carregarDados();
     }
 
     async function carregarDados() {
         const mes = document.getElementById('filtro-mes').value;
-        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mes}-01`).lte('data_referencia', `${mes}-31`);
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mes}-01`).lte('data_referencia', `${mes}-31`).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
 
-        if(!pData) return;
+        if(!pData || pData.length === 0) {
+            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum dado para este mês.</td></tr>';
+            return;
+        }
 
-        let ind = {};
+        let ind = {}; 
         let kpi = { totalG:0, nomesG:new Set(), diasG:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set() };
 
-        pData.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
+        // Filtrar apenas Assistentes para as médias
+        const assistentesRecords = pData.filter(p => p.usuarios && p.usuarios.funcao === 'Assistente');
+
+        assistentesRecords.forEach(p => {
             const qtd = Number(p.quantidade);
             const isCLT = (p.usuarios.contrato || '').includes('CLT');
-            kpi.totalG += qtd; kpi.nomesG.add(p.usuarios.nome); kpi.diasG.add(p.data_referencia);
+            const nome = p.usuarios.nome;
+
+            kpi.totalG += qtd;
+            kpi.nomesG.add(nome); // Deduplicação por NOME
+            kpi.diasG.add(p.data_referencia);
+            
             if(isCLT) { kpi.totalC += qtd; kpi.diasC.add(p.data_referencia); } 
             else { kpi.totalP += qtd; kpi.diasP.add(p.data_referencia); }
             
             if(!ind[p.usuario_id]) ind[p.usuario_id] = { total:0, dias:0 };
-            ind[p.usuario_id].total += qtd; ind[p.usuario_id].dias++;
+            ind[p.usuario_id].total += qtd; 
+            ind[p.usuario_id].dias++;
         });
 
         document.getElementById('tabela-corpo').innerHTML = pData.map(p => {
             const meta = mData.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
             const mv = meta ? meta.valor_meta : 0;
             const at = mv > 0 ? ((p.quantidade / mv) * 100).toFixed(0) : 0;
+            const stats = ind[p.usuario_id] || {total:0, dias:1};
+
             return `<tr>
-                <td>${p.data_referencia}</td><td>${p.usuarios?.nome || p.usuario_id}</td>
+                <td>${new Date(p.data_referencia).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
+                <td><strong>${p.usuarios?.nome || p.usuario_id}</strong></td>
                 <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
-                <td>${p.quantidade}</td><td>${(ind[p.usuario_id].total/ind[p.usuario_id].dias).toFixed(0)}</td>
+                <td><strong>${p.quantidade}</strong></td>
+                <td>${(stats.total / stats.dias).toFixed(0)}</td>
                 <td><span class="badge" style="background:${at>=100?'#059669':'#dc2626'}">${at}%</span></td>
             </tr>`;
         }).join('');
 
         document.getElementById('kpi-dias').innerText = kpi.diasG.size;
         document.getElementById('kpi-media-geral').innerText = kpi.nomesG.size > 0 ? (kpi.totalG / kpi.nomesG.size).toFixed(0) : 0;
-        document.getElementById('kpi-total-clt').innerText = kpi.totalC;
+        document.getElementById('kpi-total-clt').innerText = kpi.totalC.toLocaleString();
         document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.diasC.size || 1)).toFixed(0);
-        document.getElementById('kpi-total-pj').innerText = kpi.totalP;
+        document.getElementById('kpi-total-pj').innerText = kpi.totalP.toLocaleString();
         document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.diasP.size || 1)).toFixed(0);
     }
     carregarDados();
