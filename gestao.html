@@ -3,67 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Usuários - Gupy</title>
+    <title>Gestão e Metas - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #e11d48; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 2rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f1f5f9; color: #64748b; font-size: 0.85rem; }
-        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        .btn-edit { background: #3b82f6; color: white; margin-right: 5px; }
-        .btn-status { background: #ef4444; color: white; }
-        .btn-active { background: #10b981; color: white; }
-        .modal { background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc; margin-top: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background: #e2e8f0; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        th { background: #f1f5f9; }
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .hidden { display: none; }
-        input, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; margin-right: 10px; }
+        input, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; }
+        .form-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2>Painel de Gestão</h2>
-    <div>
-        <span id="admin-nome">...</span>
-        <button class="btn" onclick="logout()" style="background:#64748b; color:white; margin-left:15px;">Sair</button>
-    </div>
+    <h2>Painel de Gestão Gupy</h2>
+    <div><span id="admin-nome">...</span> <button class="btn" onclick="logout()" style="background:#64748b; color:white;">Sair</button></div>
 </div>
 
-<div class="card">
-    <h3>Novo / Editar Usuário</h3>
-    <div id="form-usuario">
-        <input type="number" id="user-id" placeholder="ID (Número)">
-        <input type="text" id="user-nome" placeholder="Nome Completo">
-        <select id="user-funcao">
-            <option value="Assistente">Assistente</option>
-            <option value="Auditora">Auditora</option>
-            <option value="Gestora">Gestora</option>
-        </select>
-        <select id="user-contrato">
-            <option value="CLT">CLT</option>
-            <option value="PJ">PJ</option>
-            <option value="CLT PCD">CLT PCD</option>
-        </select>
-        <button class="btn btn-active" onclick="salvarUsuario()">Salvar Usuário</button>
-        <button id="btn-cancelar" class="btn hidden" onclick="limparFormulario()" style="background:#64748b; color:white;">Cancelar</button>
-    </div>
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('usuarios')">Usuários</button>
+    <button class="tab-btn" onclick="switchTab('metas')">Definir Metas</button>
+</div>
 
+<div id="tab-usuarios" class="card">
+    <h3>Cadastro de Colaboradores</h3>
+    <div class="form-row">
+        <div><label>ID</label><br><input type="number" id="user-id"></div>
+        <div><label>Nome</label><br><input type="text" id="user-nome"></div>
+        <div><label>Função</label><br><select id="user-funcao"><option value="Assistente">Assistente</option><option value="Auditora">Auditora</option><option value="Gestora">Gestora</option></select></div>
+        <div><label>Contrato</label><br><select id="user-contrato"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="CLT PCD">CLT PCD</option></select></div>
+        <button class="btn" style="background:#10b981; color:white;" onclick="salvarUsuario()">Salvar</button>
+    </div>
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>NOME</th>
-                <th>FUNÇÃO</th>
-                <th>CONTRATO</th>
-                <th>STATUS</th>
-                <th>AÇÕES</th>
-            </tr>
-        </thead>
-        <tbody id="tabela-usuarios">
-            </tbody>
+        <thead><tr><th>ID</th><th>NOME</th><th>FUNÇÃO</th><th>CONTRATO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+        <tbody id="tabela-usuarios"></tbody>
+    </table>
+</div>
+
+<div id="tab-metas" class="card hidden">
+    <h3>Histórico de Metas</h3>
+    <p style="font-size: 0.8rem; color: #666;">Ao definir uma nova meta, a anterior permanece salva no histórico para consultas retroativas.</p>
+    <div class="form-row">
+        <div>
+            <label>Selecionar Colaborador</label><br>
+            <select id="meta-user-select"></select>
+        </div>
+        <div>
+            <label>Nova Meta Diária</label><br>
+            <input type="number" id="meta-valor" placeholder="Ex: 150">
+        </div>
+        <div>
+            <label>Vigente a partir de:</label><br>
+            <input type="date" id="meta-data">
+        </div>
+        <button class="btn" style="background:var(--primary); color:white;" onclick="salvarMeta()">Atualizar Meta</button>
+    </div>
+    <table>
+        <thead><tr><th>COLABORADOR</th><th>META DIÁRIA</th><th>INÍCIO DA VIGÊNCIA</th></tr></thead>
+        <tbody id="tabela-metas"></tbody>
     </table>
 </div>
 
@@ -72,40 +78,59 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let editandoId = null;
-
-    // Verificar se o usuário está logado e é Gestora/Auditora
+    // Inicialização
     const sessao = JSON.parse(localStorage.getItem('usuario'));
-    if (!sessao || (sessao.funcao !== 'Gestora' && sessao.funcao !== 'Auditora')) {
-        window.location.href = 'index.html';
-    } else {
-        document.getElementById('admin-nome').innerText = sessao.nome;
-        carregarUsuarios();
+    if (!sessao) window.location.href = 'index.html';
+    document.getElementById('admin-nome').innerText = sessao.nome;
+    document.getElementById('meta-data').valueAsDate = new Date();
+    
+    carregarUsuarios();
+    carregarMetas();
+
+    // Navegação de Abas
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tab).classList.remove('hidden');
     }
 
     async function carregarUsuarios() {
-        const { data, error } = await _supabase.from('usuarios').select('*').order('nome', { ascending: true });
-        if (error) return alert("Erro ao carregar");
-
+        const { data } = await _supabase.from('usuarios').select('*').order('nome');
         const lista = document.getElementById('tabela-usuarios');
+        const select = document.getElementById('meta-user-select');
         lista.innerHTML = '';
+        select.innerHTML = '<option value="">Selecione...</option>';
+        
         data.forEach(u => {
-            lista.innerHTML += `
-                <tr style="opacity: ${u.ativo ? '1' : '0.5'}">
-                    <td>${u.id}</td>
-                    <td>${u.nome}</td>
-                    <td>${u.funcao}</td>
-                    <td>${u.contrato}</td>
-                    <td>${u.ativo ? '✅ Ativo' : '🚫 Inativo'}</td>
-                    <td>
-                        <button class="btn btn-edit" onclick="prepararEdicao(${u.id}, '${u.nome}', '${u.funcao}', '${u.contrato}')">Editar</button>
-                        <button class="btn ${u.ativo ? 'btn-status' : 'btn-active'}" onclick="alternarStatus(${u.id}, ${u.ativo})">
-                            ${u.ativo ? 'Inativar' : 'Ativar'}
-                        </button>
-                    </td>
-                </tr>
-            `;
+            lista.innerHTML += `<tr><td>${u.id}</td><td>${u.nome}</td><td>${u.funcao}</td><td>${u.contrato}</td><td>${u.ativo ? 'Ativo' : 'Inativo'}</td><td><button class="btn" onclick="prepararEdicao(${u.id})">Editar</button></td></tr>`;
+            if(u.funcao === 'Assistente') select.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
         });
+    }
+
+    async function carregarMetas() {
+        const { data } = await _supabase.from('metas').select('*, usuarios(nome)').order('data_inicio', { ascending: false });
+        const lista = document.getElementById('tabela-metas');
+        lista.innerHTML = '';
+        data.forEach(m => {
+            lista.innerHTML += `<tr><td>${m.usuarios.nome}</td><td><strong>${m.valor_meta}</strong></td><td>${new Date(m.data_inicio).toLocaleDateString('pt-BR')}</td></tr>`;
+        });
+    }
+
+    async function salvarMeta() {
+        const userId = document.getElementById('meta-user-select').value;
+        const valor = document.getElementById('meta-valor').value;
+        const data = document.getElementById('meta-data').value;
+
+        if(!userId || !valor || !data) return alert("Preencha todos os campos da meta!");
+
+        const { error } = await _supabase.from('metas').insert([{ usuario_id: userId, valor_meta: valor, data_inicio: data }]);
+        
+        if (error) alert("Erro ao salvar meta");
+        else {
+            alert("Nova meta registrada!");
+            carregarMetas();
+        }
     }
 
     async function salvarUsuario() {
@@ -113,57 +138,13 @@
         const nome = document.getElementById('user-nome').value;
         const funcao = document.getElementById('user-funcao').value;
         const contrato = document.getElementById('user-contrato').value;
-
-        if (!id || !nome) return alert("Preencha ID e Nome");
-
-        if (editandoId) {
-            // EDITAR
-            const { error } = await _supabase.from('usuarios').update({ nome, funcao, contrato }).eq('id', id);
-            if (error) alert("Erro ao atualizar");
-        } else {
-            // CRIAR NOVO
-            const { error } = await _supabase.from('usuarios').insert([{ id, nome, funcao, contrato, senha: '123', primeiro_acesso: true, is_admin: (funcao === 'Gestora') }]);
-            if (error) alert("Erro ao criar (ID já existe?)");
-        }
         
-        limparFormulario();
-        carregarUsuarios();
+        const { error } = await _supabase.from('usuarios').upsert([{ id, nome, funcao, contrato, is_admin: (funcao==='Gestora') }]);
+        if (error) alert("Erro ao salvar");
+        else { carregarUsuarios(); alert("Sucesso!"); }
     }
 
-    async function alternarStatus(id, statusAtual) {
-        if (id === 432243) return alert("A gestora principal não pode ser inativada.");
-        
-        const confirmacao = confirm(`Deseja realmente ${statusAtual ? 'Inativar' : 'Ativar'} este usuário?`);
-        if (!confirmacao) return;
-
-        const { error } = await _supabase.from('usuarios').update({ ativo: !statusAtual }).eq('id', id);
-        if (error) alert("Erro ao alterar status");
-        carregarUsuarios();
-    }
-
-    function prepararEdicao(id, nome, funcao, contrato) {
-        editandoId = id;
-        document.getElementById('user-id').value = id;
-        document.getElementById('user-id').disabled = true; // Não muda o ID
-        document.getElementById('user-nome').value = nome;
-        document.getElementById('user-funcao').value = funcao;
-        document.getElementById('user-contrato').value = contrato;
-        document.getElementById('btn-cancelar').classList.remove('hidden');
-    }
-
-    function limparFormulario() {
-        editandoId = null;
-        document.getElementById('user-id').value = '';
-        document.getElementById('user-id').disabled = false;
-        document.getElementById('user-nome').value = '';
-        document.getElementById('btn-cancelar').classList.add('hidden');
-    }
-
-    function logout() {
-        localStorage.removeItem('usuario');
-        window.location.href = 'index.html';
-    }
+    function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
 </script>
-
 </body>
 </html>
