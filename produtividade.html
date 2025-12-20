@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Mensal Consolidados - Gupy</title>
+    <title>Relatório Produtividade - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f1f5f9; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -16,10 +16,15 @@
         .kpi-label { font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase; }
         .kpi-value { font-size: 1.4rem; font-weight: 800; }
         .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; color: white; background: var(--primary); font-weight: bold; }
+        
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
         th { background: #f1f5f9; padding: 12px; text-align: left; position: sticky; top: 0; z-index: 10; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-        tr:nth-child(even) { background-color: #fafafa; }
+        
+        /* ESTILO PARA DIFERENCIAR OS DIAS */
+        .dia-header { background: #e2e8f0; font-weight: 800; color: #1e293b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .dia-header td { padding: 15px 12px; border-bottom: 2px solid #cbd5e1; }
+        
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
         .import-log { font-size: 0.75rem; color: #059669; margin-top: 10px; background: #f0fdf4; padding: 10px; border-radius: 8px; display: none; }
     </style>
@@ -27,16 +32,13 @@
 <body>
 
 <div class="header">
-    <h2>📊 Gestão de Produtividade (Visão Mensal)</h2>
-    <div>
-        <button class="btn" onclick="location.reload()" style="background:#0ea5e9; margin-right:5px;">🔄 Atualizar Página</button>
-        <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Gestão</button>
-    </div>
+    <h2>📊 Dashboard de Produtividade Mensal</h2>
+    <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Voltar à Gestão</button>
 </div>
 
 <div class="summary-grid">
     <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias com Produção</div><div class="kpi-value" id="kpi-dias">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Diária Geral</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Geral (Time)</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
     <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
     <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
     <div class="summary-item" style="border-top-color:#10b981;"><div class="kpi-label">Total Validado</div><div class="kpi-value" id="kpi-total-geral">0</div></div>
@@ -45,12 +47,12 @@
 <div class="card">
     <div style="display:flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
         <div>
-            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Importação em Lote (Selecione 01, 02, 03...):</label>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Importar Múltiplos Arquivos:</label>
             <input type="file" id="excel-files" accept=".xlsx" multiple>
             <button class="btn" onclick="importarArquivos()">Processar Arquivos</button>
         </div>
         <div>
-            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Selecione o Mês:</label>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Filtrar Mês:</label>
             <input type="month" id="filtro-mes" onchange="carregarDados()">
         </div>
     </div>
@@ -73,7 +75,7 @@
             </tr>
         </thead>
         <tbody id="tabela-corpo">
-            <tr><td colspan="9" style="text-align:center; padding:30px;">Carregando relatório mensal...</td></tr>
+            <tr><td colspan="9" style="text-align:center; padding:30px;">Carregando dados...</td></tr>
         </tbody>
     </table>
 </div>
@@ -83,131 +85,97 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    // Inicializa com o mês atual
-    const agora = new Date();
-    document.getElementById('filtro-mes').value = agora.toISOString().substring(0,7);
+    document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
     async function importarArquivos() {
         const files = document.getElementById('excel-files').files;
         const log = document.getElementById('import-log');
-        if(files.length === 0) return alert("Selecione os arquivos primeiro!");
-
-        log.style.display = 'block';
-        log.innerHTML = "<b>Iniciando importação...</b><br>";
+        if(files.length === 0) return alert("Selecione os arquivos!");
+        log.style.display = 'block'; log.innerHTML = "<b>Iniciando...</b><br>";
 
         for(let file of files) {
             const fn = file.name.replace('.xlsx', '');
-            if(!/^\d{8}$/.test(fn)) {
-                log.innerHTML += `❌ Arquivo ignorado (nome fora do padrão): ${file.name}<br>`;
-                continue;
-            }
-
+            if(!/^\d{8}$/.test(fn)) continue;
             const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
             
             try {
                 const buffer = await file.arrayBuffer();
-                const workbook = XLSX.read(buffer, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                
-                const inserts = json.map(r => ({
+                const wb = XLSX.read(buffer, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                const ins = json.map(r => ({
                     usuario_id: r.id_assistente,
                     fifo: Number(r.documentos_validados_fifo || 0),
                     gradual_total: Number(r.documentos_validados_gradual_total || 0),
                     gradual_parcial: Number(r.documentos_validados_gradual_parcial || 0),
                     perfil_fc: Number(r.documentos_validados_perfil_fc || 0),
                     quantidade: Number(r.documentos_validados || 0),
-                    data_referencia: dr,
-                    nome_arquivo: file.name
+                    data_referencia: dr, nome_arquivo: file.name
                 })).filter(x => x.usuario_id);
-
-                const { error } = await _supabase.from('producao').insert(inserts);
-                
-                if(error) log.innerHTML += `⚠️ Dia ${dr} já existia no sistema.<br>`;
-                else log.innerHTML += `✅ Dia ${dr} importado (${inserts.length} registros).<br>`;
-            } catch (err) {
-                log.innerHTML += `❌ Erro no arquivo ${file.name}: ${err.message}<br>`;
-            }
+                await _supabase.from('producao').insert(ins);
+                log.innerHTML += `✅ ${dr} importado.<br>`;
+            } catch (err) { log.innerHTML += `❌ Erro em ${file.name}.<br>`; }
         }
-        log.innerHTML += "<b>Concluído!</b>";
+        log.innerHTML += "<b>Finalizado!</b>";
         carregarDados();
     }
 
     async function carregarDados() {
-        const mesStr = document.getElementById('filtro-mes').value; // YYYY-MM
-        const dataInicio = `${mesStr}-01`;
-        const dataFim = `${mesStr}-31`; // O Supabase trata datas gte/lte corretamente mesmo se o mês terminar antes
-
-        const { data: pData, error } = await _supabase.from('producao')
-            .select('*, usuarios(*)')
-            .gte('data_referencia', dataInicio)
-            .lte('data_referencia', dataFim)
-            .order('data_referencia', {ascending: false});
-
+        const mesStr = document.getElementById('filtro-mes').value;
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mesStr}-01`).lte('data_referencia', `${mesStr}-31`).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
 
         const tbody = document.getElementById('tabela-corpo');
         if(!pData || pData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px;">Nenhum dado encontrado para este mês.</td></tr>';
-            zerarKPIs();
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px;">Sem dados para este mês.</td></tr>';
             return;
         }
 
-        let ind = {}; // Estatísticas por assistente
-        let kpi = { totalG:0, nomesUnicos:new Set(), diasUnicos:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set() };
-
-        // Processamento dos Indicadores (Filtra Auditoras/Gestoras conforme solicitado)
+        let ind = {}; let kpi = { totalG:0, nomesU:new Set(), diasU:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set() };
+        
         pData.forEach(p => {
-            const qtd = Number(p.quantidade);
-            const data = p.data_referencia;
-            const nome = p.usuarios?.nome || 'ID:' + p.usuario_id;
-            const isAssistente = p.usuarios?.funcao === 'Assistente';
-            const isCLT = (p.usuarios?.contrato || '').includes('CLT');
-
-            if(isAssistente) {
-                kpi.totalG += qtd;
-                kpi.nomesUnicos.add(nome);
-                kpi.diasUnicos.add(data);
-                
-                if(isCLT) { kpi.totalC += qtd; kpi.diasC.add(data); } 
-                else { kpi.totalP += qtd; kpi.diasP.add(data); }
-
+            if(p.usuarios?.funcao === 'Assistente') {
+                kpi.totalG += Number(p.quantidade); kpi.nomesU.add(p.usuarios.nome); kpi.diasU.add(p.data_referencia);
+                if((p.usuarios.contrato || '').includes('CLT')) { kpi.totalC += Number(p.quantidade); kpi.diasC.add(p.data_referencia); }
+                else { kpi.totalP += Number(p.quantidade); kpi.diasP.add(p.data_referencia); }
                 if(!ind[p.usuario_id]) ind[p.usuario_id] = { total:0, dias:0 };
-                ind[p.usuario_id].total += qtd;
-                ind[p.usuario_id].dias++;
+                ind[p.usuario_id].total += Number(p.quantidade); ind[p.usuario_id].dias++;
             }
         });
 
-        // Montagem da Tabela
-        tbody.innerHTML = pData.map(p => {
+        let html = '';
+        let ultimaData = '';
+
+        pData.forEach(p => {
+            const dataAtual = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
+            
+            // INSERE CABEÇALHO DE DIA SE A DATA MUDAR
+            if (dataAtual !== ultimaData) {
+                html += `<tr class="dia-header"><td colspan="9">📅 Produção de ${dataAtual}</td></tr>`;
+                ultimaData = dataAtual;
+            }
+
             const meta = mData ? mData.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0] : null;
             const mv = meta ? meta.valor_meta : 0;
             const at = mv > 0 ? ((p.quantidade / mv) * 100).toFixed(0) : 0;
             const stats = ind[p.usuario_id] || {total:0, dias:1};
 
-            return `<tr>
-                <td>${new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
-                <td><strong>${p.usuarios?.nome || 'ID:'+p.usuario_id}</strong> <span style="font-size:0.7rem; color:#666;">(${p.usuarios?.contrato || 'PJ'})</span></td>
+            html += `<tr>
+                <td>${dataAtual}</td>
+                <td><strong>${p.usuarios?.nome || p.usuario_id}</strong> <span style="font-size:0.7rem; color:#888;">(${p.usuarios?.contrato || 'PJ'})</span></td>
                 <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
                 <td><strong>${p.quantidade}</strong></td>
                 <td>${(stats.total / stats.dias).toFixed(0)}</td>
                 <td><span class="badge" style="background:${at>=100?'#059669':'#dc2626'}">${at}%</span></td>
             </tr>`;
-        }).join('');
+        });
 
-        // Atualização dos Cards com a Lógica Solicitada
-        document.getElementById('kpi-dias').innerText = kpi.diasUnicos.size;
+        tbody.innerHTML = html;
+        document.getElementById('kpi-dias').innerText = kpi.diasU.size;
         document.getElementById('kpi-total-geral').innerText = kpi.totalG.toLocaleString();
-        document.getElementById('kpi-media-geral').innerText = kpi.nomesUnicos.size > 0 ? (kpi.totalG / kpi.nomesUnicos.size).toFixed(0) : 0;
-        document.getElementById('kpi-total-clt').innerText = kpi.totalC.toLocaleString();
+        document.getElementById('kpi-media-geral').innerText = kpi.nomesU.size > 0 ? (kpi.totalG / kpi.nomesU.size).toFixed(0) : 0;
         document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.diasC.size || 1)).toFixed(0);
-        document.getElementById('kpi-total-pj').innerText = kpi.totalP.toLocaleString();
         document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.diasP.size || 1)).toFixed(0);
     }
-
-    function zerarKPIs() {
-        ['kpi-dias', 'kpi-media-geral', 'kpi-total-clt', 'kpi-media-clt', 'kpi-total-pj', 'kpi-media-pj', 'kpi-total-geral'].forEach(id => document.getElementById(id).innerText = '0');
-    }
-
     carregarDados();
 </script>
 </body>
