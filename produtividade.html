@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Produtividade - Gupy</title>
+    <title>Relatório Mensal - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --success: #059669; --bg: #f8fafc; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -17,7 +17,7 @@
         .kpi-value { font-size: 1.4rem; font-weight: 800; }
         .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; color: white; background: var(--primary); font-weight: bold; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
-        th { background: #f1f5f9; padding: 12px; text-align: left; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; position: sticky; top: 0; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
     </style>
@@ -25,38 +25,44 @@
 <body>
 
 <div class="header">
-    <h2>📊 Dashboard de Produtividade</h2>
+    <h2>📊 Dashboard de Produtividade Mensal</h2>
     <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Voltar à Gestão</button>
 </div>
 
 <div class="summary-grid">
-    <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias Trabalhados</div><div class="kpi-value" id="kpi-dias">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Geral (Time)</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
+    <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias no Mês</div><div class="kpi-value" id="kpi-dias">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Diária Geral</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
     <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Total CLT</div><div class="kpi-value" id="kpi-total-clt">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média Diária CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
     <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Total PJ</div><div class="kpi-value" id="kpi-total-pj">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média Diária PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
 </div>
 
 <div class="card">
-    <div style="display:flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
+    <div style="display:flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
         <div>
-            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Pode selecionar várias planilhas de uma só vez:</label>
-            <input type="file" id="excel-files" accept=".xlsx" multiple style="font-size: 0.8rem;">
-            <button class="btn" onclick="processarMultiplosExcel()">Subir Planilhas</button>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Selecione várias planilhas (Segure Ctrl):</label>
+            <input type="file" id="excel-files" accept=".xlsx" multiple>
+            <button class="btn" onclick="importarTudo()">Importar Planilhas</button>
         </div>
-        <div><input type="month" id="filtro-mes" onchange="carregarDados()" style="padding:8px;"></div>
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Ver Relatório do Mês:</label>
+            <input type="month" id="filtro-mes" onchange="carregarDados()">
+        </div>
     </div>
+    <p id="feedback-import" style="font-size:0.8rem; margin-top:10px; font-weight:bold;"></p>
 </div>
 
 <div class="card" style="overflow-x:auto;">
     <table>
         <thead>
             <tr>
-                <th>Data</th><th>Assistente</th><th>FIFO</th><th>GT</th><th>GP</th><th>FC</th><th>Total</th><th>Média</th><th>Ating.</th>
+                <th>Data</th><th>Assistente</th><th>FIFO</th><th>GT</th><th>GP</th><th>FC</th><th>Total Dia</th><th>Média Mês</th><th>Ating.</th>
             </tr>
         </thead>
-        <tbody id="tabela-corpo"></tbody>
+        <tbody id="tabela-corpo">
+            <tr><td colspan="9" style="text-align:center; padding:30px;">Carregando dados do mês...</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -67,19 +73,19 @@
 
     document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
-    async function processarMultiplosExcel() {
+    async function importarTudo() {
         const files = document.getElementById('excel-files').files;
-        if(files.length === 0) return alert("Selecione pelo menos um arquivo!");
+        const feedback = document.getElementById('feedback-import');
+        if(files.length === 0) return alert("Selecione arquivos!");
 
+        feedback.innerText = "Processando " + files.length + " arquivos...";
+        
         for(let file of files) {
             const fn = file.name.replace('.xlsx', '');
-            if(!/^\d{8}$/.test(fn)) {
-                console.log("Arquivo ignorado por nome inválido:", file.name);
-                continue;
-            }
+            if(!/^\d{8}$/.test(fn)) continue;
             const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
-            
-            await new Promise((resolve) => {
+
+            await new Promise(res => {
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     const data = new Uint8Array(e.target.result);
@@ -94,35 +100,39 @@
                         quantidade: Number(r.documentos_validados || 0),
                         data_referencia: dr, nome_arquivo: file.name
                     })).filter(x => x.usuario_id);
-                    
-                    const { error } = await _supabase.from('producao').insert(ins);
-                    if(error) console.log("Erro no arquivo " + file.name + ": " + error.message);
-                    resolve();
+                    await _supabase.from('producao').insert(ins);
+                    res();
                 };
                 reader.readAsArrayBuffer(file);
             });
         }
-        alert("Processamento concluído!");
+        feedback.innerText = "✅ Importação finalizada!";
         carregarDados();
     }
 
     async function carregarDados() {
-        const mes = document.getElementById('filtro-mes').value;
-        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mes}-01`).lte('data_referencia', `${mes}-31`).order('data_referencia', {ascending: false});
+        const mesStr = document.getElementById('filtro-mes').value; // Ex: 2025-10
+        const [ano, mes] = mesStr.split('-').map(Number);
+        
+        // Calcula o último dia do mês corretamente
+        const ultimoDia = new Date(ano, mes, 0).getDate();
+        const dataInicio = `${mesStr}-01`;
+        const dataFim = `${mesStr}-${ultimoDia}`;
+
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', dataInicio).lte('data_referencia', dataFim).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
 
         if(!pData || pData.length === 0) {
-            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum dado para este mês.</td></tr>';
+            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px;">Sem dados para este mês.</td></tr>';
+            zerarKPIs();
             return;
         }
 
-        let ind = {}; 
+        let ind = {}; // Médias Individuais
         let kpi = { totalG:0, nomesG:new Set(), diasG:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set() };
 
-        // Filtrar apenas Assistentes para as médias
-        const assistentesRecords = pData.filter(p => p.usuarios && p.usuarios.funcao === 'Assistente');
-
-        assistentesRecords.forEach(p => {
+        // Processa apenas Assistentes para as Médias
+        pData.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
             const qtd = Number(p.quantidade);
             const isCLT = (p.usuarios.contrato || '').includes('CLT');
             const nome = p.usuarios.nome;
@@ -139,6 +149,7 @@
             ind[p.usuario_id].dias++;
         });
 
+        // Renderiza Tabela
         document.getElementById('tabela-corpo').innerHTML = pData.map(p => {
             const meta = mData.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
             const mv = meta ? meta.valor_meta : 0;
@@ -147,7 +158,7 @@
 
             return `<tr>
                 <td>${new Date(p.data_referencia).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
-                <td><strong>${p.usuarios?.nome || p.usuario_id}</strong></td>
+                <td><strong>${p.usuarios?.nome || 'ID:'+p.usuario_id}</strong> <span style="font-size:0.7rem; color:#888;">(${p.usuarios?.contrato || 'PJ'})</span></td>
                 <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
                 <td><strong>${p.quantidade}</strong></td>
                 <td>${(stats.total / stats.dias).toFixed(0)}</td>
@@ -155,12 +166,17 @@
             </tr>`;
         }).join('');
 
+        // Atualiza Cards
         document.getElementById('kpi-dias').innerText = kpi.diasG.size;
         document.getElementById('kpi-media-geral').innerText = kpi.nomesG.size > 0 ? (kpi.totalG / kpi.nomesG.size).toFixed(0) : 0;
         document.getElementById('kpi-total-clt').innerText = kpi.totalC.toLocaleString();
         document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.diasC.size || 1)).toFixed(0);
         document.getElementById('kpi-total-pj').innerText = kpi.totalP.toLocaleString();
         document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.diasP.size || 1)).toFixed(0);
+    }
+
+    function zerarKPIs() {
+        ['kpi-dias', 'kpi-media-geral', 'kpi-total-clt', 'kpi-media-clt', 'kpi-total-pj', 'kpi-media-pj'].forEach(id => document.getElementById(id).innerText = '0');
     }
     carregarDados();
 </script>
