@@ -3,80 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão e Metas - Gupy</title>
+    <title>Produtividade - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background: #e2e8f0; margin-right: 5px; font-weight: bold; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .hidden { display: none; }
-        input, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; margin-bottom: 10px; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-item { background: white; padding: 15px; border-radius: 10px; border-top: 4px solid #cbd5e1; }
+        .kpi-label { font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .kpi-value { font-size: 1.4rem; font-weight: 800; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; color: white; background: var(--primary); font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1000px; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>Painel de Gestão Gupy</h2>
-        <div>
-            <button class="btn" onclick="location.href='produtividade.html'" style="background:#0284c7; color:white;">📊 Ir para Produtividade</button>
-            <button class="btn" onclick="localStorage.removeItem('usuario'); location.href='index.html'" style="background:#64748b; color:white; margin-left:10px;">Sair</button>
-        </div>
+
+<div class="header">
+    <h2>📊 Dashboard de Produtividade</h2>
+    <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Voltar à Gestão</button>
+</div>
+
+<div class="summary-grid">
+    <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias Trabalhados</div><div class="kpi-value" id="kpi-dias">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Geral (Time)</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Total CLT</div><div class="kpi-value" id="kpi-total-clt">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Total PJ</div><div class="kpi-value" id="kpi-total-pj">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
+</div>
+
+<div class="card">
+    <div style="display:flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
+        <input type="file" id="excel-file" accept=".xlsx" style="font-size: 0.8rem;">
+        <button class="btn" onclick="processarExcel()">Subir Planilha</button>
+        <input type="month" id="filtro-mes" onchange="carregarDados()" style="padding:8px;">
     </div>
-    <div class="card">
-        <button class="tab-btn active" id="btn-u" onclick="switchTab('usuarios')">Usuários</button>
-        <button class="tab-btn" id="btn-m" onclick="switchTab('metas')">Metas</button>
-        <div id="tab-usuarios" style="margin-top:20px;">
-            <h3>Cadastrar Colaborador</h3>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
-                <input type="number" id="u-id" placeholder="ID">
-                <input type="text" id="u-nome" placeholder="Nome Completo">
-                <select id="u-fun"><option value="Assistente">Assistente</option><option value="Auditora">Auditora</option><option value="Gestora">Gestora</option></select>
-                <select id="u-con"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="CLT PCD">CLT PCD</option></select>
-            </div>
-            <button class="btn" style="background:#10b981; color:white;" onclick="addU()">Salvar</button>
-            <table id="lista-u"><thead><tr><th>ID</th><th>Nome</th><th>Função</th><th>Contrato</th></tr></thead><tbody></tbody></table>
-        </div>
-        <div id="tab-metas" class="hidden" style="margin-top:20px;">
-            <h3>Definir Meta</h3>
-            <select id="m-user" style="width:100%; max-width:300px;"></select>
-            <input type="number" id="m-val" placeholder="Meta Diária">
-            <input type="date" id="m-data">
-            <button class="btn" style="background:var(--primary); color:white;" onclick="addM()">Atualizar Meta</button>
-            <table id="lista-m"><thead><tr><th>Nome</th><th>Meta</th><th>Vigência</th></tr></thead><tbody></tbody></table>
-        </div>
-    </div>
+</div>
+
+<div class="card" style="overflow-x:auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th><th>Assistente</th><th>FIFO</th><th>GT</th><th>GP</th><th>FC</th><th>Total</th><th>Média</th><th>Ating.</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo"></tbody>
+    </table>
+</div>
+
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
-    document.getElementById('m-data').valueAsDate = new Date();
-    function switchTab(t){
-        document.getElementById('tab-usuarios').classList.toggle('hidden', t!=='usuarios');
-        document.getElementById('tab-metas').classList.toggle('hidden', t!=='metas');
-        document.getElementById('btn-u').classList.toggle('active', t==='usuarios');
-        document.getElementById('btn-m').classList.toggle('active', t==='metas');
+
+    document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
+
+    async function processarExcel() {
+        const file = document.getElementById('excel-file').files[0];
+        if(!file) return;
+        const fn = file.name.replace('.xlsx', '');
+        const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            const inserts = json.map(r => ({
+                usuario_id: r.id_assistente,
+                fifo: Number(r.documentos_validados_fifo || 0),
+                gradual_total: Number(r.documentos_validados_gradual_total || 0),
+                gradual_parcial: Number(r.documentos_validados_gradual_parcial || 0),
+                perfil_fc: Number(r.documentos_validados_perfil_fc || 0),
+                quantidade: Number(r.documentos_validados || 0),
+                data_referencia: dr, nome_arquivo: file.name
+            })).filter(x => x.usuario_id);
+            const { error } = await _supabase.from('producao').insert(inserts);
+            if(error) alert("Erro ou data já importada."); else { alert("Sucesso!"); carregarDados(); }
+        };
+        reader.readAsArrayBuffer(file);
     }
-    async function addU(){
-        await _supabase.from('usuarios').upsert([{id:document.getElementById('u-id').value, nome:document.getElementById('u-nome').value, funcao:document.getElementById('u-fun').value, contrato:document.getElementById('u-con').value, ativo:true, senha:'123'}]);
-        load();
+
+    async function carregarDados() {
+        const mes = document.getElementById('filtro-mes').value;
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mes}-01`).lte('data_referencia', `${mes}-31`);
+        const { data: mData } = await _supabase.from('metas').select('*');
+
+        if(!pData) return;
+
+        let ind = {};
+        let kpi = { totalG:0, nomesG:new Set(), diasG:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set() };
+
+        pData.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
+            const qtd = Number(p.quantidade);
+            const isCLT = (p.usuarios.contrato || '').includes('CLT');
+            kpi.totalG += qtd; kpi.nomesG.add(p.usuarios.nome); kpi.diasG.add(p.data_referencia);
+            if(isCLT) { kpi.totalC += qtd; kpi.diasC.add(p.data_referencia); } 
+            else { kpi.totalP += qtd; kpi.diasP.add(p.data_referencia); }
+            
+            if(!ind[p.usuario_id]) ind[p.usuario_id] = { total:0, dias:0 };
+            ind[p.usuario_id].total += qtd; ind[p.usuario_id].dias++;
+        });
+
+        document.getElementById('tabela-corpo').innerHTML = pData.map(p => {
+            const meta = mData.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
+            const mv = meta ? meta.valor_meta : 0;
+            const at = mv > 0 ? ((p.quantidade / mv) * 100).toFixed(0) : 0;
+            return `<tr>
+                <td>${p.data_referencia}</td><td>${p.usuarios?.nome || p.usuario_id}</td>
+                <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
+                <td>${p.quantidade}</td><td>${(ind[p.usuario_id].total/ind[p.usuario_id].dias).toFixed(0)}</td>
+                <td><span class="badge" style="background:${at>=100?'#059669':'#dc2626'}">${at}%</span></td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('kpi-dias').innerText = kpi.diasG.size;
+        document.getElementById('kpi-media-geral').innerText = kpi.nomesG.size > 0 ? (kpi.totalG / kpi.nomesG.size).toFixed(0) : 0;
+        document.getElementById('kpi-total-clt').innerText = kpi.totalC;
+        document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.diasC.size || 1)).toFixed(0);
+        document.getElementById('kpi-total-pj').innerText = kpi.totalP;
+        document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.diasP.size || 1)).toFixed(0);
     }
-    async function addM(){
-        await _supabase.from('metas').insert([{usuario_id:document.getElementById('m-user').value, valor_meta:document.getElementById('m-val').value, data_inicio:document.getElementById('m-data').value}]);
-        load();
-    }
-    async function load(){
-        const {data:u} = await _supabase.from('usuarios').select('*').order('nome');
-        const {data:m} = await _supabase.from('metas').select('*, usuarios(nome)').order('data_inicio', {ascending:false});
-        document.querySelector('#lista-u tbody').innerHTML = u.map(x=>`<tr><td>${x.id}</td><td>${x.nome}</td><td>${x.funcao}</td><td>${x.contrato}</td></tr>`).join('');
-        document.getElementById('m-user').innerHTML = u.filter(x=>x.funcao==='Assistente').map(x=>`<option value="${x.id}">${x.nome}</option>`).join('');
-        document.querySelector('#lista-m tbody').innerHTML = m.map(x=>`<tr><td>${x.usuarios?.nome}</td><td>${x.valor_meta}</td><td>${x.data_inicio}</td></tr>`).join('');
-    }
-    load();
+    carregarDados();
 </script>
 </body>
 </html>
