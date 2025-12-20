@@ -14,7 +14,8 @@
         .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.85rem; }
-        .loading { color: orange; font-weight: bold; display: none; }
+        .loading { color: #2563eb; font-weight: bold; display: none; }
+        .success-msg { color: #059669; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -22,21 +23,34 @@
         <h2>📊 Centro de Produtividade</h2>
         <button class="btn" onclick="location.href='gestao.html'" style="background:#64748b;">Voltar à Gestão</button>
     </div>
+
     <div class="card">
-        <h3>Importar Planilha Diária</h3>
-        <p>Selecione o arquivo no formato <strong>DDMMAAAA.xlsx</strong></p>
+        <h3>1. Importar Planilha Diária</h3>
+        <p>Arquivo: <strong>DDMMAAAA.xlsx</strong> (Ex: 01102025.xlsx)</p>
         <input type="file" id="excel-file" accept=".xlsx">
         <button class="btn" onclick="processarExcel()">Subir Dados</button>
-        <p id="status-load" class="loading">Processando dados, aguarde...</p>
+        <p id="status-load" class="loading">Enviando dados para o Supabase...</p>
+        <div id="feedback"></div>
     </div>
+
     <div class="card">
-        <h3>Histórico de Importações</h3>
+        <h3>2. Ver Produção por Usuário</h3>
         <select id="user-view" onchange="verProd()" style="padding:10px; width:100%; max-width:300px; margin-bottom:15px;"></select>
         <table>
-            <thead><tr><th>Data</th><th>Total Validado</th><th>Meta</th><th>Atingimento</th></tr></thead>
-            <tbody id="corpo-tabela"></tbody>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Total Validado</th>
+                    <th>Meta</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="corpo-tabela">
+                <tr><td colspan="4">Selecione um colaborador acima.</td></tr>
+            </tbody>
         </table>
     </div>
+
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
@@ -44,54 +58,76 @@
 
     async function processarExcel() {
         const file = document.getElementById('excel-file').files[0];
-        if(!file) return alert("Selecione um arquivo!");
+        const feedback = document.getElementById('feedback');
+        const loader = document.getElementById('status-load');
+        
+        if(!file) return alert("Por favor, selecione um arquivo.");
         
         const fileName = file.name.replace('.xlsx', '');
-        if(!/^\d{8}$/.test(fileName)) return alert("Nome do arquivo deve ser DDMMAAAA.xlsx");
+        if(!/^\d{8}$/.test(fileName)) return alert("O nome do arquivo deve ser apenas números (ex: 01102025.xlsx)");
+        
         const dataRef = `${fileName.substring(4,8)}-${fileName.substring(2,4)}-${fileName.substring(0,2)}`;
 
-        document.getElementById('status-load').style.display = 'block';
+        loader.style.display = 'block';
+        feedback.innerHTML = '';
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-            // Mapeamento usando as colunas que você enviou
+            // Mapeando com os nomes das colunas que você informou
             const inserts = json.map(r => ({
-                usuario_id: r.id_assistente, // Sua coluna: id_assistente
-                quantidade: r.documentos_validados, // Sua coluna: documentos_validados
+                usuario_id: r.id_assistente,
+                quantidade: r.documentos_validados,
                 data_referencia: dataRef,
                 nome_arquivo: file.name
-            })).filter(x => x.usuario_id); // Remove linhas vazias
+            })).filter(x => x.usuario_id && x.quantidade !== undefined);
 
+            // Tenta inserir os dados
             const { error } = await _supabase.from('producao').insert(inserts);
-            document.getElementById('status-load').style.display = 'none';
-            if(error) alert("Erro: Dados já existentes ou IDs inválidos.");
-            else { alert("Importação concluída!"); verProd(); }
+            
+            loader.style.display = 'none';
+
+            if(error) {
+                if(error.code === '23505') {
+                    feedback.innerHTML = '<p style="color:red;">⚠️ Erro 409: Os dados desta data já foram importados anteriormente.</p>';
+                } else {
+                    feedback.innerHTML = '<p style="color:red;">❌ Erro: ' + error.message + '</p>';
+                }
+            } else {
+                feedback.innerHTML = '<p class="success-msg">✅ Importação de ' + inserts.length + ' registros concluída!</p>';
+                verProd();
+            }
         };
         reader.readAsArrayBuffer(file);
     }
 
     async function verProd() {
         const uid = document.getElementById('user-view').value;
+        if(!uid) return;
+
         const { data: p } = await _supabase.from('producao').select('*').eq('usuario_id', uid).order('data_referencia', {ascending: false});
         const { data: m } = await _supabase.from('metas').select('valor_meta').eq('usuario_id', uid).order('id', {ascending: false}).limit(1);
         const meta = m?.[0]?.valor_meta || 0;
         
-        document.getElementById('corpo-tabela').innerHTML = p.map(x => `
+        const tbody = document.getElementById('corpo-tabela');
+        tbody.innerHTML = p.length ? p.map(x => `
             <tr>
                 <td>${new Date(x.data_referencia).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
                 <td>${x.quantidade}</td>
                 <td>${meta}</td>
                 <td>${meta > 0 ? ((x.quantidade/meta)*100).toFixed(1) : 0}%</td>
             </tr>
-        `).join('');
+        `).join('') : '<tr><td colspan="4">Nenhum dado encontrado.</td></tr>';
     }
 
     async function init(){
-        const {data} = await _supabase.from('usuarios').select('id, nome').eq('funcao','Assistente');
-        document.getElementById('user-view').innerHTML = data.map(x=>`<option value="${x.id}">${x.nome}</option>`).join('');
+        const {data} = await _supabase.from('usuarios').select('id, nome').eq('ativo', true).order('nome');
+        const select = document.getElementById('user-view');
+        select.innerHTML = '<option value="">Selecione um colaborador...</option>' + 
+            data.map(x=>`<option value="${x.id}">${x.nome}</option>`).join('');
     }
     init();
 </script>
