@@ -24,41 +24,18 @@
         <button onclick="fazerLogin()">Entrar</button>
         <p id="msg-erro" class="error"></p>
     </div>
-
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
     async function fazerLogin() {
         const id = document.getElementById('user-id').value;
         const pass = document.getElementById('user-pass').value;
-
-        const { data, error } = await supabaseClient
-            .from('usuarios')
-            .select('*')
-            .eq('id', id)
-            .eq('senha', pass)
-            .maybeSingle();
-
-        if (error || !data) {
-            document.getElementById('msg-erro').innerText = "ID ou Senha inválidos.";
-            return;
-        }
-
-        if (data.ativo === false) {
-            document.getElementById('msg-erro').innerText = "Usuário inativo.";
-            return;
-        }
-
+        const { data, error } = await supabaseClient.from('usuarios').select('*').eq('id', id).eq('senha', pass).maybeSingle();
+        if (error || !data) { document.getElementById('msg-erro').innerText = "ID ou Senha inválidos."; return; }
+        if (data.ativo === false) { document.getElementById('msg-erro').innerText = "Usuário inativo."; return; }
         localStorage.setItem('usuario', JSON.stringify(data));
-
-        // Redireciona sempre para gestão se for Gestora
-        if (data.funcao === 'Gestora') {
-            window.location.href = 'gestao.html';
-        } else {
-            window.location.href = 'produtividade.html';
-        }
+        window.location.href = (data.funcao === 'Gestora') ? 'gestao.html' : 'produtividade.html';
     }
 </script>
 </body>
