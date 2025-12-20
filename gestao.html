@@ -26,7 +26,11 @@
 
 <div class="header">
     <h2>Painel de Gestão Gupy</h2>
-    <div><span id="admin-nome">...</span> <button class="btn" onclick="logout()" style="background:#64748b; color:white;">Sair</button></div>
+    <div>
+        <button class="btn" onclick="location.href='produtividade.html'" style="background:#0284c7; color:white; margin-right:10px;">📊 Importar / Produtividade</button>
+        <span id="admin-nome">...</span> 
+        <button class="btn" onclick="logout()" style="background:#64748b; color:white; margin-left:10px;">Sair</button>
+    </div>
 </div>
 
 <div class="tabs">
@@ -44,31 +48,21 @@
         <button class="btn" style="background:#10b981; color:white;" onclick="salvarUsuario()">Salvar</button>
     </div>
     <table>
-        <thead><tr><th>ID</th><th>NOME</th><th>FUNÇÃO</th><th>CONTRATO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+        <thead><tr><th>ID</th><th>NOME</th><th>FUNÇÃO</th><th>CONTRATO</th><th>AÇÕES</th></tr></thead>
         <tbody id="tabela-usuarios"></tbody>
     </table>
 </div>
 
 <div id="tab-metas" class="card hidden">
     <h3>Histórico de Metas</h3>
-    <p style="font-size: 0.8rem; color: #666;">Ao definir uma nova meta, a anterior permanece salva no histórico para consultas retroativas.</p>
     <div class="form-row">
-        <div>
-            <label>Selecionar Colaborador</label><br>
-            <select id="meta-user-select"></select>
-        </div>
-        <div>
-            <label>Nova Meta Diária</label><br>
-            <input type="number" id="meta-valor" placeholder="Ex: 150">
-        </div>
-        <div>
-            <label>Vigente a partir de:</label><br>
-            <input type="date" id="meta-data">
-        </div>
+        <div><label>Colaborador</label><br><select id="meta-user-select"></select></div>
+        <div><label>Nova Meta</label><br><input type="number" id="meta-valor"></div>
+        <div><label>Data Início</label><br><input type="date" id="meta-data"></div>
         <button class="btn" style="background:var(--primary); color:white;" onclick="salvarMeta()">Atualizar Meta</button>
     </div>
     <table>
-        <thead><tr><th>COLABORADOR</th><th>META DIÁRIA</th><th>INÍCIO DA VIGÊNCIA</th></tr></thead>
+        <thead><tr><th>COLABORADOR</th><th>META DIÁRIA</th><th>VIGÊNCIA</th></tr></thead>
         <tbody id="tabela-metas"></tbody>
     </table>
 </div>
@@ -78,16 +72,11 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    // Inicialização
     const sessao = JSON.parse(localStorage.getItem('usuario'));
     if (!sessao) window.location.href = 'index.html';
     document.getElementById('admin-nome').innerText = sessao.nome;
     document.getElementById('meta-data').valueAsDate = new Date();
     
-    carregarUsuarios();
-    carregarMetas();
-
-    // Navegação de Abas
     function switchTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
@@ -101,9 +90,8 @@
         const select = document.getElementById('meta-user-select');
         lista.innerHTML = '';
         select.innerHTML = '<option value="">Selecione...</option>';
-        
         data.forEach(u => {
-            lista.innerHTML += `<tr><td>${u.id}</td><td>${u.nome}</td><td>${u.funcao}</td><td>${u.contrato}</td><td>${u.ativo ? 'Ativo' : 'Inativo'}</td><td><button class="btn" onclick="prepararEdicao(${u.id})">Editar</button></td></tr>`;
+            lista.innerHTML += `<tr><td>${u.id}</td><td>${u.nome}</td><td>${u.funcao}</td><td>${u.contrato}</td><td><button class="btn" onclick="prepararEdicao(${u.id},'${u.nome}')">Editar</button></td></tr>`;
             if(u.funcao === 'Assistente') select.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
         });
     }
@@ -113,38 +101,24 @@
         const lista = document.getElementById('tabela-metas');
         lista.innerHTML = '';
         data.forEach(m => {
-            lista.innerHTML += `<tr><td>${m.usuarios.nome}</td><td><strong>${m.valor_meta}</strong></td><td>${new Date(m.data_inicio).toLocaleDateString('pt-BR')}</td></tr>`;
+            lista.innerHTML += `<tr><td>${m.usuarios?.nome || 'N/A'}</td><td>${m.valor_meta}</td><td>${new Date(m.data_inicio).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td></tr>`;
         });
-    }
-
-    async function salvarMeta() {
-        const userId = document.getElementById('meta-user-select').value;
-        const valor = document.getElementById('meta-valor').value;
-        const data = document.getElementById('meta-data').value;
-
-        if(!userId || !valor || !data) return alert("Preencha todos os campos da meta!");
-
-        const { error } = await _supabase.from('metas').insert([{ usuario_id: userId, valor_meta: valor, data_inicio: data }]);
-        
-        if (error) alert("Erro ao salvar meta");
-        else {
-            alert("Nova meta registrada!");
-            carregarMetas();
-        }
     }
 
     async function salvarUsuario() {
         const id = document.getElementById('user-id').value;
         const nome = document.getElementById('user-nome').value;
-        const funcao = document.getElementById('user-funcao').value;
-        const contrato = document.getElementById('user-contrato').value;
-        
-        const { error } = await _supabase.from('usuarios').upsert([{ id, nome, funcao, contrato, is_admin: (funcao==='Gestora') }]);
-        if (error) alert("Erro ao salvar");
-        else { carregarUsuarios(); alert("Sucesso!"); }
+        const { error } = await _supabase.from('usuarios').upsert([{ id, nome, funcao: document.getElementById('user-funcao').value, contrato: document.getElementById('user-contrato').value, is_admin: (document.getElementById('user-funcao').value==='Gestora') }]);
+        if (error) alert("Erro ao salvar"); else carregarUsuarios();
+    }
+
+    async function salvarMeta() {
+        const { error } = await _supabase.from('metas').insert([{ usuario_id: document.getElementById('meta-user-select').value, valor_meta: document.getElementById('meta-valor').value, data_inicio: document.getElementById('meta-data').value }]);
+        if (error) alert("Erro meta"); else carregarMetas();
     }
 
     function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
+    carregarUsuarios(); carregarMetas();
 </script>
 </body>
 </html>
