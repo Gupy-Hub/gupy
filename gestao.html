@@ -31,7 +31,6 @@
         <button class="tab-btn active" id="btn-u" onclick="switchTab('usuarios')">Usuários</button>
         <button class="tab-btn" id="btn-m" onclick="switchTab('metas')">Metas</button>
         <div id="tab-usuarios" style="margin-top:20px;">
-            <h3>Cadastrar Colaborador</h3>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
                 <input type="number" id="u-id" placeholder="ID">
                 <input type="text" id="u-nome" placeholder="Nome">
@@ -42,7 +41,6 @@
             <table id="lista-u"><thead><tr><th>ID</th><th>Nome</th><th>Função</th><th>Contrato</th></tr></thead><tbody></tbody></table>
         </div>
         <div id="tab-metas" class="hidden" style="margin-top:20px;">
-            <h3>Definir Meta</h3>
             <select id="m-user" style="width:100%; max-width:300px;"></select>
             <input type="number" id="m-val" placeholder="Meta">
             <input type="date" id="m-data">
