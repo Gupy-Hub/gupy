@@ -3,109 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Mensal de Produtividade - Gupy</title>
+    <title>Dashboard Gestão - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --success: #059669; --bg: #f8fafc; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; background: var(--primary); }
         
-        /* Grid de KPIs */
+        /* Grid de KPIs do Time */
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .summary-item { background: white; padding: 15px; border-radius: 10px; border-top: 4px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .summary-item { background: white; padding: 15px; border-radius: 10px; border-top: 4px solid #cbd5e1; }
         .kpi-geral { border-top-color: var(--primary); }
         .kpi-clt { border-top-color: var(--clt); }
         .kpi-pj { border-top-color: var(--pj); }
-        .summary-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
-        .summary-value { font-size: 1.5rem; font-weight: 800; color: #1e293b; }
-        .summary-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 5px; }
+        .summary-label { font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .summary-value { font-size: 1.4rem; font-weight: 800; }
 
-        /* Tabela */
-        .table-container { overflow-x: auto; background: white; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1000px; }
-        th { background: #f1f5f9; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; sticky: top; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-        tr:hover { background-color: #f8fafc; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
-        .bg-green { background: #dcfce7; color: #166534; }
-        .bg-red { background: #fee2e2; color: #991b1b; }
-        
-        input[type="month"], input[type="file"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        /* Tabela Customizada */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
+        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .row-total-month { background: #fff1f2; font-weight: bold; }
+        .badge-info { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div>
-        <h1 style="margin:0; font-size: 1.4rem;">📊 Gestão de Produtividade Mensal</h1>
-        <p style="margin:4px 0 0; color: #64748b; font-size: 0.85rem;">Dashboard Administrativo - Patrícia</p>
+        <h1 style="margin:0; font-size: 1.2rem;">📊 Painel de Controle de Produtividade</h1>
+        <p style="margin:0; font-size: 0.8rem; color: #64748b;">Relatórios Consolidados para Gestão</p>
     </div>
-    <button class="btn" onclick="location.href='gestao.html'" style="background:#64748b;">⚙️ Voltar à Gestão</button>
-</div>
-
-<div class="card">
-    <h3 style="margin-top:0; font-size: 1rem;">1. Importar Arquivo (DDMMAAAA.xlsx)</h3>
-    <div style="display:flex; gap:10px; align-items:center;">
-        <input type="file" id="excel-file" accept=".xlsx">
-        <button class="btn" style="background:var(--primary);" onclick="processarExcel()">Subir Planilha</button>
-    </div>
+    <button class="btn" style="background:#64748b;" onclick="location.href='gestao.html'">Configurações</button>
 </div>
 
 <div class="summary-grid">
     <div class="summary-item kpi-geral">
         <div class="summary-label">Média Diária Geral (Time)</div>
-        <div class="summary-value" id="kpi-media-geral">0</div>
-        <div class="summary-sub">Validado / Dias Ativos</div>
+        <div class="summary-value" id="time-media-geral">0</div>
     </div>
     <div class="summary-item kpi-clt">
         <div class="summary-label">Total Validado CLT</div>
-        <div class="summary-value" id="kpi-total-clt">0</div>
-        <div id="count-clt" class="summary-sub">0 Assistentes</div>
+        <div class="summary-value" id="time-total-clt">0</div>
     </div>
     <div class="summary-item kpi-clt">
         <div class="summary-label">Média Diária CLT</div>
-        <div class="summary-value" id="kpi-media-clt">0</div>
-        <div class="summary-sub">Por dia trabalhado</div>
+        <div class="summary-value" id="time-media-clt">0</div>
     </div>
     <div class="summary-item kpi-pj">
         <div class="summary-label">Total Validado PJ</div>
-        <div class="summary-value" id="kpi-total-pj">0</div>
-        <div id="count-pj" class="summary-sub">0 Assistentes</div>
+        <div class="summary-value" id="time-total-pj">0</div>
     </div>
     <div class="summary-item kpi-pj">
         <div class="summary-label">Média Diária PJ</div>
-        <div class="summary-value" id="kpi-media-pj">0</div>
-        <div class="summary-sub">Por dia trabalhado</div>
+        <div class="summary-value" id="time-media-pj">0</div>
     </div>
 </div>
 
 <div class="card">
-    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-        <h3 style="margin:0; font-size: 1rem;">2. Relatório de Movimentação</h3>
-        <input type="month" id="filtro-mes" onchange="carregarRelatorio()">
+    <div style="display:flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px;">Importar Novo Dia (.xlsx)</label>
+            <input type="file" id="excel-file" accept=".xlsx">
+            <button class="btn" onclick="processarExcel()">Subir Planilha</button>
+        </div>
+        <div>
+            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px;">Mês de Referência</label>
+            <input type="month" id="filtro-mes" onchange="carregarDados()">
+        </div>
     </div>
+</div>
 
+<div class="card">
+    <h3>Relatório Detalhado por Assistente</h3>
     <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th>Data</th>
-                    <th>Assistente</th>
-                    <th>Contrato</th>
+                    <th>Assistente (Contrato)</th>
                     <th>FIFO</th>
                     <th>Grad. Total</th>
                     <th>Grad. Parcial</th>
                     <th>Perfil FC</th>
-                    <th>Soma Total</th>
-                    <th>Meta</th>
-                    <th>Ating.</th>
+                    <th>Total Dia</th>
+                    <th>Total Semana</th>
+                    <th>Total Mês</th>
+                    <th>Média Mensal</th>
                 </tr>
             </thead>
             <tbody id="tabela-corpo">
-                <tr><td colspan="10" style="text-align:center; padding:30px;">Selecione um mês para carregar os dados.</td></tr>
+                <tr><td colspan="10" style="text-align:center;">Carregando dados...</td></tr>
             </tbody>
         </table>
     </div>
@@ -116,14 +108,11 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    // Define o mês atual como padrão
-    const hoje = new Date();
-    document.getElementById('filtro-mes').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('filtro-mes').value = new Date().toISOString().substring(0, 7);
 
     async function processarExcel() {
         const file = document.getElementById('excel-file').files[0];
         if(!file) return alert("Selecione o arquivo!");
-        
         const fileName = file.name.replace('.xlsx', '');
         const dataRef = `${fileName.substring(4,8)}-${fileName.substring(2,4)}-${fileName.substring(0,2)}`;
 
@@ -132,7 +121,6 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
             const inserts = json.map(r => ({
                 usuario_id: r.id_assistente,
                 fifo: r.documentos_validados_fifo || 0,
@@ -145,99 +133,79 @@
             })).filter(x => x.usuario_id);
 
             const { error } = await _supabase.from('producao').insert(inserts);
-            if(error) alert("Esta data já foi importada ou há erro nos IDs.");
-            else { alert("Importação concluída!"); carregarRelatorio(); }
+            if(error) alert("Erro ao importar."); else { alert("Sucesso!"); carregarDados(); }
         };
         reader.readAsArrayBuffer(file);
     }
 
-    async function carregarRelatorio() {
-        const mesAno = document.getElementById('filtro-mes').value; // Formato YYYY-MM
-        if(!mesAno) return;
+    // Função para pegar o número da semana (ISO)
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+    }
 
-        // Busca Produção + Nome e Contrato das Assistentes
-        const { data: pData } = await _supabase
-            .from('producao')
-            .select('*, usuarios(nome, contrato)')
-            .filter('data_referencia', 'gte', `${mesAno}-01`)
-            .filter('data_referencia', 'lte', `${mesAno}-31`)
-            .order('data_referencia', {ascending: true});
+    async function carregarDados() {
+        const mesAno = document.getElementById('filtro-mes').value;
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(nome, contrato)').filter('data_referencia', 'gte', `${mesAno}-01`).filter('data_referencia', 'lte', `${mesAno}-31`).order('data_referencia');
 
-        // Busca todas as Metas para calcular atingimento
-        const { data: mData } = await _supabase.from('metas').select('*');
+        if(!pData) return;
 
+        let statsUser = {}; // Para cálculos mensais/semanais por usuário
+        let kpiTime = { totalGeral: 0, totalCLT: 0, totalPJ: 0, diasAtivos: new Set() };
+
+        // Primeiro passo: Processar totais por usuário
+        pData.forEach(p => {
+            const uid = p.usuario_id;
+            const week = getWeekNumber(new Date(p.data_referencia));
+            const contrato = (p.usuarios?.contrato || 'PJ').includes('CLT') ? 'CLT' : 'PJ';
+
+            if(!statsUser[uid]) statsUser[uid] = { totalMes: 0, diasTrabalhados: 0, semanas: {} };
+            
+            statsUser[uid].totalMes += p.quantidade;
+            statsUser[uid].diasTrabalhados++;
+            statsUser[uid].semanas[week] = (statsUser[uid].semanas[week] || 0) + p.quantidade;
+
+            kpiTime.totalGeral += p.quantidade;
+            kpiTime.diasAtivos.add(p.data_referencia);
+            if(contrato === 'CLT') kpiTime.totalCLT += p.quantidade; else kpiTime.totalPJ += p.quantidade;
+        });
+
+        // Segundo passo: Renderizar Tabela
         const tbody = document.getElementById('tabela-corpo');
         tbody.innerHTML = '';
-
-        if(!pData || pData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">Nenhum dado encontrado para este mês.</td></tr>';
-            zerarKPIs();
-            return;
-        }
-
-        // Variáveis para cálculos dos Cards
-        let totais = { clt: 0, pj: 0, geral: 0 };
-        let assistentesUnicas = { clt: new Set(), pj: new Set() };
-        let diasAtivos = new Set();
-
         pData.forEach(p => {
-            const user = p.usuarios || { nome: 'ID:'+p.usuario_id, contrato: 'PJ' };
-            const tipoContrato = (user.contrato && user.contrato.includes('CLT')) ? 'CLT' : 'PJ';
-            
-            // Lógica de Meta (pega a meta mais próxima da data de produção)
-            const metaUser = mData.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia)
-                                  .sort((a,b) => new Date(b.data_inicio) - new Date(a.data_inicio))[0];
-            const metaVal = metaUser ? metaUser.valor_meta : 0;
-            const perc = metaVal > 0 ? ((p.quantidade / metaVal) * 100).toFixed(0) : 0;
+            const uid = p.usuario_id;
+            const week = getWeekNumber(new Date(p.data_referencia));
+            const mediaMensal = (statsUser[uid].totalMes / statsUser[uid].diasTrabalhados).toFixed(0);
 
-            // Acumuladores para KPIs
-            diasAtivos.add(p.data_referencia);
-            totais.geral += p.quantidade;
-            if(tipoContrato === 'CLT') {
-                totais.clt += p.quantidade;
-                assistentesUnicas.clt.add(p.usuario_id);
-            } else {
-                totais.pj += p.quantidade;
-                assistentesUnicas.pj.add(p.usuario_id);
-            }
-
-            // Inserção na Tabela
             tbody.innerHTML += `
                 <tr>
-                    <td>${new Date(p.data_referencia).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
-                    <td><strong>${user.nome}</strong></td>
-                    <td>${user.contrato || 'PJ'}</td>
+                    <td>${new Date(p.data_referencia).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
+                    <td><strong>${p.usuarios?.nome}</strong> <span class="badge-info">${p.usuarios?.contrato}</span></td>
                     <td>${p.fifo}</td>
                     <td>${p.gradual_total}</td>
                     <td>${p.gradual_parcial}</td>
                     <td>${p.perfil_fc}</td>
-                    <td><strong>${p.quantidade}</strong></td>
-                    <td>${metaVal}</td>
-                    <td><span class="badge ${perc >= 100 ? 'bg-green' : 'bg-red'}">${perc}%</span></td>
+                    <td>${p.quantidade}</td>
+                    <td><span style="color:#64748b">${statsUser[uid].semanas[week]}</span></td>
+                    <td><strong>${statsUser[uid].totalMes}</strong></td>
+                    <td>${mediaMensal}</td>
                 </tr>
             `;
         });
 
-        // Atualizar Cards de KPIs
-        const numDias = diasAtivos.size || 1;
-        document.getElementById('kpi-media-geral').innerText = (totais.geral / numDias).toFixed(0);
-        
-        document.getElementById('kpi-total-clt').innerText = totais.clt.toLocaleString();
-        document.getElementById('kpi-media-clt').innerText = (totais.clt / numDias).toFixed(0);
-        document.getElementById('count-clt').innerText = `${assistentesUnicas.clt.size} Assistentes CLT`;
-
-        document.getElementById('kpi-total-pj').innerText = totais.pj.toLocaleString();
-        document.getElementById('kpi-media-pj').innerText = (totais.pj / numDias).toFixed(0);
-        document.getElementById('count-pj').innerText = `${assistentesUnicas.pj.size} Assistentes PJ`;
+        // Terceiro passo: Atualizar KPIs do Time
+        const qtdDias = kpiTime.diasAtivos.size || 1;
+        document.getElementById('time-media-geral').innerText = (kpiTime.totalGeral / qtdDias).toFixed(0);
+        document.getElementById('time-total-clt').innerText = kpiTime.totalCLT.toLocaleString();
+        document.getElementById('time-media-clt').innerText = (kpiTime.totalCLT / qtdDias).toFixed(0);
+        document.getElementById('time-total-pj').innerText = kpiTime.totalPJ.toLocaleString();
+        document.getElementById('time-media-pj').innerText = (kpiTime.totalPJ / qtdDias).toFixed(0);
     }
 
-    function zerarKPIs() {
-        ['kpi-media-geral', 'kpi-total-clt', 'kpi-media-clt', 'kpi-total-pj', 'kpi-media-pj'].forEach(id => {
-            document.getElementById(id).innerText = '0';
-        });
-    }
-
-    carregarRelatorio();
+    carregarDados();
 </script>
 </body>
 </html>
