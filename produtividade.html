@@ -3,73 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtividade Gupy</title>
+    <title>Relatório de Produtividade - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 2rem; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.85rem; }
-        .loading { color: #2563eb; font-weight: bold; display: none; }
-        .success-msg { color: #059669; font-weight: bold; margin-top: 10px; }
+        :root { --primary: #e11d48; --success: #059669; --danger: #dc2626; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-import { background: var(--primary); color: white; }
+        .btn-nav { background: #64748b; color: white; text-decoration: none; font-size: 0.9rem; }
+        
+        /* Estilo do Relatório */
+        .report-controls { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+        .report-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        .report-table th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; text-transform: uppercase; }
+        .report-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+        
+        /* Badges de Status */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .badge-success { background: #dcfce7; color: var(--success); }
+        .badge-danger { background: #fee2e2; color: var(--danger); }
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-item { background: white; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); }
+        .summary-label { font-size: 0.8rem; color: #64748b; }
+        .summary-value { font-size: 1.4rem; font-weight: bold; }
+        
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>📊 Centro de Produtividade</h2>
-        <button class="btn" onclick="location.href='gestao.html'" style="background:#64748b;">Voltar à Gestão</button>
+
+<div class="header">
+    <div>
+        <h1 style="margin:0; font-size: 1.5rem;">📊 Relatório Diário de Validação</h1>
+        <p style="margin:5px 0 0; color: #64748b; font-size: 0.9rem;">Gestão de Produtividade Assistentes</p>
+    </div>
+    <button class="btn btn-nav" onclick="location.href='gestao.html'">Configurações de Gestão</button>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">Nova Importação</h3>
+    <div class="report-controls">
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Arquivo Excel (DDMMAAAA.xlsx)</label>
+            <input type="file" id="excel-file" accept=".xlsx">
+        </div>
+        <button class="btn btn-import" onclick="processarExcel()">Carregar Dados</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="report-controls">
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px;">Filtrar por Data</label>
+            <input type="date" id="filtro-data" onchange="carregarRelatorio()">
+        </div>
+        <div id="info-arquivo" style="font-size: 0.85rem; color: #64748b; align-self: center; margin-top: 20px;"></div>
     </div>
 
-    <div class="card">
-        <h3>1. Importar Planilha Diária</h3>
-        <p>Arquivo: <strong>DDMMAAAA.xlsx</strong> (Ex: 01102025.xlsx)</p>
-        <input type="file" id="excel-file" accept=".xlsx">
-        <button class="btn" onclick="processarExcel()">Subir Dados</button>
-        <p id="status-load" class="loading">Enviando dados para o Supabase...</p>
-        <div id="feedback"></div>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <div class="summary-label">Total Validado no Dia</div>
+            <div class="summary-value" id="total-dia">0</div>
+        </div>
+        <div class="summary-item" style="border-left-color: #3b82f6;">
+            <div class="summary-label">Média por Assistente</div>
+            <div class="summary-value" id="media-dia">0</div>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>2. Ver Produção por Usuário</h3>
-        <select id="user-view" onchange="verProd()" style="padding:10px; width:100%; max-width:300px; margin-bottom:15px;"></select>
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Total Validado</th>
-                    <th>Meta</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="corpo-tabela">
-                <tr><td colspan="4">Selecione um colaborador acima.</td></tr>
-            </tbody>
-        </table>
-    </div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Assistente</th>
+                <th>ID</th>
+                <th>Produção</th>
+                <th>Meta Atual</th>
+                <th>Atingimento</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+            <tr><td colspan="6" style="text-align:center; padding:40px;">Selecione uma data para visualizar o relatório.</td></tr>
+        </tbody>
+    </table>
+</div>
 
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+    // Define a data de hoje no filtro ao carregar
+    document.getElementById('filtro-data').valueAsDate = new Date();
+
     async function processarExcel() {
         const file = document.getElementById('excel-file').files[0];
-        const feedback = document.getElementById('feedback');
-        const loader = document.getElementById('status-load');
-        
-        if(!file) return alert("Por favor, selecione um arquivo.");
+        if(!file) return alert("Selecione o arquivo!");
         
         const fileName = file.name.replace('.xlsx', '');
-        if(!/^\d{8}$/.test(fileName)) return alert("O nome do arquivo deve ser apenas números (ex: 01102025.xlsx)");
+        if(!/^\d{8}$/.test(fileName)) return alert("Nome inválido! Use DDMMAAAA.xlsx");
         
         const dataRef = `${fileName.substring(4,8)}-${fileName.substring(2,4)}-${fileName.substring(0,2)}`;
-
-        loader.style.display = 'block';
-        feedback.innerHTML = '';
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -77,59 +115,80 @@
             const workbook = XLSX.read(data, {type: 'array'});
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-            // Mapeando com os nomes das colunas que você informou
             const inserts = json.map(r => ({
                 usuario_id: r.id_assistente,
                 quantidade: r.documentos_validados,
                 data_referencia: dataRef,
                 nome_arquivo: file.name
-            })).filter(x => x.usuario_id && x.quantidade !== undefined);
+            })).filter(x => x.usuario_id);
 
-            // Tenta inserir os dados
             const { error } = await _supabase.from('producao').insert(inserts);
-            
-            loader.style.display = 'none';
-
-            if(error) {
-                if(error.code === '23505') {
-                    feedback.innerHTML = '<p style="color:red;">⚠️ Erro 409: Os dados desta data já foram importados anteriormente.</p>';
-                } else {
-                    feedback.innerHTML = '<p style="color:red;">❌ Erro: ' + error.message + '</p>';
-                }
-            } else {
-                feedback.innerHTML = '<p class="success-msg">✅ Importação de ' + inserts.length + ' registros concluída!</p>';
-                verProd();
+            if(error) alert("Erro: Esta data já foi importada anteriormente.");
+            else {
+                alert("Sucesso! Relatório de " + dataRef + " carregado.");
+                document.getElementById('filtro-data').value = dataRef;
+                carregarRelatorio();
             }
         };
         reader.readAsArrayBuffer(file);
     }
 
-    async function verProd() {
-        const uid = document.getElementById('user-view').value;
-        if(!uid) return;
+    async function carregarRelatorio() {
+        const dataBusca = document.getElementById('filtro-data').value;
+        if(!dataBusca) return;
 
-        const { data: p } = await _supabase.from('producao').select('*').eq('usuario_id', uid).order('data_referencia', {ascending: false});
-        const { data: m } = await _supabase.from('metas').select('valor_meta').eq('usuario_id', uid).order('id', {ascending: false}).limit(1);
-        const meta = m?.[0]?.valor_meta || 0;
-        
-        const tbody = document.getElementById('corpo-tabela');
-        tbody.innerHTML = p.length ? p.map(x => `
-            <tr>
-                <td>${new Date(x.data_referencia).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-                <td>${x.quantidade}</td>
-                <td>${meta}</td>
-                <td>${meta > 0 ? ((x.quantidade/meta)*100).toFixed(1) : 0}%</td>
-            </tr>
-        `).join('') : '<tr><td colspan="4">Nenhum dado encontrado.</td></tr>';
+        // Buscar Produção + Nome do Usuário
+        const { data: pData, error: pError } = await _supabase
+            .from('producao')
+            .select('*, usuarios(nome)')
+            .eq('data_referencia', dataBusca);
+
+        // Buscar Metas Atuais
+        const { data: mData } = await _supabase.from('metas').select('*');
+
+        const tbody = document.getElementById('tabela-corpo');
+        tbody.innerHTML = '';
+
+        if(!pData || pData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px;">Sem dados para esta data.</td></tr>';
+            atualizarResumo(0, 0);
+            return;
+        }
+
+        let somaTotal = 0;
+
+        pData.forEach(p => {
+            // Encontrar a meta do usuário (pegando a mais recente)
+            const metaUser = mData.filter(m => m.usuario_id == p.usuario_id).sort((a,b) => b.id - a.id)[0];
+            const metaValor = metaUser ? metaUser.valor_meta : 0;
+            const atingimento = metaValor > 0 ? ((p.quantidade / metaValor) * 100).toFixed(1) : 0;
+            const statusLabel = atingimento >= 100 ? 'META ATINGIDA' : 'ABAIXO DA META';
+            const statusClass = atingimento >= 100 ? 'badge-success' : 'badge-danger';
+
+            somaTotal += p.quantidade;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${p.usuarios?.nome || 'Não cadastrado'}</strong></td>
+                    <td>${p.usuario_id}</td>
+                    <td>${p.quantidade}</td>
+                    <td>${metaValor}</td>
+                    <td>${atingimento}%</td>
+                    <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                </tr>
+            `;
+        });
+
+        atualizarResumo(somaTotal, pData.length);
     }
 
-    async function init(){
-        const {data} = await _supabase.from('usuarios').select('id, nome').eq('ativo', true).order('nome');
-        const select = document.getElementById('user-view');
-        select.innerHTML = '<option value="">Selecione um colaborador...</option>' + 
-            data.map(x=>`<option value="${x.id}">${x.nome}</option>`).join('');
+    function atualizarResumo(total, qtdPessoas) {
+        document.getElementById('total-dia').innerText = total.toLocaleString();
+        document.getElementById('media-dia').innerText = qtdPessoas > 0 ? (total / qtdPessoas).toFixed(0) : 0;
     }
-    init();
+
+    // Inicializa o relatório
+    carregarRelatorio();
 </script>
 </body>
 </html>
