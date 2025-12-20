@@ -3,103 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Produtividade</title>
+    <title>App Produtividade - Validação</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; }
-        h2 { text-align: center; color: #333; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; margin-bottom: 1.5rem; color: var(--primary); }
+        .input-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #1d4ed8; }
         .hidden { display: none; }
-        .message { color: red; font-size: 0.8rem; text-align: center; }
+        .error { color: #dc2626; font-size: 0.85rem; text-align: center; margin-top: 10px; }
+        .admin-area { border-top: 2px solid #e2e8f0; margin-top: 20px; padding-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="login-container">
-    <h2>Login</h2>
-    <input type="text" id="user-id" placeholder="ID do Utilizador">
-    <input type="password" id="user-pass" placeholder="Senha">
-    <button onclick="fazerLogin()">Entrar</button>
-    <p id="login-error" class="message"></p>
+<div class="container" id="login-screen">
+    <h2>Entrar no Sistema</h2>
+    <div class="input-group">
+        <label>ID do Usuário</label>
+        <input type="text" id="login-id" placeholder="Ex: admin01 ou func05">
+    </div>
+    <div class="input-group">
+        <label>Senha</label>
+        <input type="password" id="login-pass" placeholder="Sua senha">
+    </div>
+    <button onclick="handleLogin()">Entrar</button>
+    <p id="login-error" class="error"></p>
 </div>
 
-<div class="container hidden" id="troca-senha-container">
-    <h2>Nova Senha</h2>
-    <p style="font-size: 0.8rem;">Este é o seu primeiro acesso. Por favor, altere a sua senha.</p>
-    <input type="password" id="new-pass" placeholder="Nova Senha">
-    <button onclick="atualizarSenha()">Salvar e Entrar</button>
+<div class="container hidden" id="reset-screen">
+    <h2>Primeiro Acesso</h2>
+    <p style="font-size: 0.9rem; color: #64748b;">Olá! Por segurança, você precisa definir uma nova senha para o seu primeiro acesso.</p>
+    <div class="input-group">
+        <label>Nova Senha</label>
+        <input type="password" id="new-pass" placeholder="Mínimo 3 caracteres">
+    </div>
+    <button onclick="handleResetPassword()">Salvar Nova Senha</button>
 </div>
 
-<div class="container hidden" id="dashboard">
-    <h2 id="welcome-msg">Bem-vindo!</h2>
-    <p>Área de produtividade em construção...</p>
-    <button onclick="location.reload()" style="background-color: #666;">Sair</button>
+<div class="container hidden" id="admin-screen">
+    <h2>Painel Administrativo</h2>
+    <p>Bem-vindo, <strong>Pedro</strong>!</p>
+    <div class="admin-area">
+        <h3>Cadastrar Assistente</h3>
+        <div class="input-group">
+            <label>ID da Assistente</label>
+            <input type="text" id="reg-id" placeholder="Ex: assist01">
+        </div>
+        <div class="input-group">
+            <label>Nome Completo</label>
+            <input type="text" id="reg-nome" placeholder="Nome da assistente">
+        </div>
+        <div class="input-group">
+            <label>Senha Inicial</label>
+            <input type="text" id="reg-pass" value="123" readonly>
+            <small>Padrão: 123 (Ela deverá trocar no primeiro acesso)</small>
+        </div>
+        <button onclick="handleCreateUser()" style="background-color: #059669;">Cadastrar Usuário</button>
+    </div>
+    <br>
+    <button onclick="location.reload()" style="background-color: #64748b;">Sair</button>
+</div>
+
+<div class="container hidden" id="user-screen">
+    <h2 id="user-greeting">Olá!</h2>
+    <p>Sua área de registro de produção diária será aqui.</p>
+    <button onclick="location.reload()" style="background-color: #64748b;">Sair do Sistema</button>
 </div>
 
 <script>
-    // CONFIGURAÇÃO DO SUPABASE (Substitua pelos seus dados)
-    const SUPABASE_URL = 'https://glqrpsyjwozvislyxapj.supabase.co';
-    const SUPABASE_KEY = 'SUA_KEY_ANON_AQUI'; // Use a anon key do seu painel
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // CREDENCIAIS JÁ CONFIGURADAS
+    const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
+    
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let usuarioLogado = null;
+    let loggedUser = null;
 
-    async function fazerLogin() {
-        const id = document.getElementById('user-id').value;
-        const pass = document.getElementById('user-pass').value;
-        const errorMsg = document.getElementById('login-error');
+    // Função para fazer o Login
+    async function handleLogin() {
+        const id = document.getElementById('login-id').value;
+        const pass = document.getElementById('login-pass').value;
+        const errorEl = document.getElementById('login-error');
 
-        // Procura o usuário no banco de dados
-        const { data, error } = await supabase
+        const { data, error } = await _supabase
             .from('usuarios')
             .select('*')
             .eq('id', id)
             .eq('senha', pass)
-            .single();
+            .maybeSingle();
 
         if (error || !data) {
-            errorMsg.innerText = "ID ou Senha incorretos.";
+            errorEl.innerText = "ID ou Senha inválidos!";
             return;
         }
 
-        usuarioLogado = data;
+        loggedUser = data;
 
-        // Verifica se é o primeiro acesso
-        if (data.primeiro_acesso) {
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('troca-senha-container').classList.remove('hidden');
+        // Se for primeiro acesso, obriga a trocar senha (exceto se já for falso)
+        if (data.primeiro_acesso === true) {
+            showScreen('reset-screen');
+        } else if (data.is_admin === true) {
+            showScreen('admin-screen');
         } else {
-            mostrarDashboard();
+            document.getElementById('user-greeting').innerText = `Olá, ${data.nome}!`;
+            showScreen('user-screen');
         }
     }
 
-    async function atualizarSenha() {
-        const novaSenha = document.getElementById('new-pass').value;
-        
-        if (novaSenha.length < 3) {
-            alert("A senha deve ter pelo menos 3 caracteres.");
+    // Função para trocar senha no primeiro acesso
+    async function handleResetPassword() {
+        const newPass = document.getElementById('new-pass').value;
+        if(newPass.length < 3) {
+            alert("A senha deve ser maior.");
             return;
         }
 
-        const { error } = await supabase
+        const { error } = await _supabase
             .from('usuarios')
-            .update({ senha: novaSenha, primeiro_acesso: false })
-            .eq('id', usuarioLogado.id);
+            .update({ senha: newPass, primeiro_acesso: false })
+            .eq('id', loggedUser.id);
 
         if (!error) {
-            alert("Senha atualizada com sucesso!");
-            mostrarDashboard();
+            alert("Senha atualizada! Faça login novamente.");
+            location.reload();
         }
     }
 
-    function mostrarDashboard() {
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('troca-senha-container').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        document.getElementById('welcome-msg').innerText = `Olá, ${usuarioLogado.nome}!`;
+    // Função para o Administrador criar novos usuários
+    async function handleCreateUser() {
+        const id = document.getElementById('reg-id').value;
+        const nome = document.getElementById('reg-nome').value;
+        const senha = document.getElementById('reg-pass').value;
+
+        if(!id || !nome) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        const { error } = await _supabase
+            .from('usuarios')
+            .insert([{ id, nome, senha, primeiro_acesso: true, is_admin: false }]);
+
+        if (error) {
+            alert("Erro ao criar usuário: " + error.message);
+        } else {
+            alert("Usuário " + nome + " criado com sucesso!");
+            document.getElementById('reg-id').value = "";
+            document.getElementById('reg-nome').value = "";
+        }
+    }
+
+    // Utilitário para trocar de tela
+    function showScreen(screenId) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('reset-screen').classList.add('hidden');
+        document.getElementById('admin-screen').classList.add('hidden');
+        document.getElementById('user-screen').classList.add('hidden');
+        document.getElementById(screenId).classList.remove('hidden');
     }
 </script>
 
