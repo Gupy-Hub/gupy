@@ -1,74 +1,8 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Produtividade Gupy</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --primary: #e11d48; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; }
-        h2 { text-align: center; color: #1e293b; margin-bottom: 1.5rem; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #be123c; }
-        .error { color: #dc2626; font-size: 0.8rem; text-align: center; margin-top: 10px; }
-    </style>
-</head>
-<body>
-
-<div class="login-card">
-    <h2>Sistema Gupy</h2>
-    <input type="number" id="user-id" placeholder="Digite seu ID">
-    <input type="password" id="user-pass" placeholder="Sua senha">
-    <button onclick="fazerLogin()">Entrar</button>
-    <p id="msg-erro" class="error"></p>
-</div>
-
-<script>
-    // Configurações do Supabase incorporadas
-    const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-    async function fazerLogin() {
-        const id = document.getElementById('user-id').value;
-        const pass = document.getElementById('user-pass').value;
-
-        // Busca o utilizador no banco de dados
-        const { data, error } = await supabaseClient
-            .from('usuarios')
-            .select('*')
-            .eq('id', id)
-            .eq('senha', pass)
-            .maybeSingle();
-
-        if (error || !data) {
-            document.getElementById('msg-erro').innerText = "ID ou Senha inválidos.";
-            return;
-        }
-
-        // Verifica se o utilizador está ativo antes de permitir o acesso
-        if (data.ativo === false) {
-            document.getElementById('msg-erro').innerText = "Utilizador inativo. Contacte a gestão.";
-            return;
-        }
-
-        // Guarda os dados na sessão do navegador
-        localStorage.setItem('usuario', JSON.stringify(data));
-
-        // LÓGICA DE REDIRECIONAMENTO
-        // Se for Gestora ou Auditora, vai para gestao.html
-        if (data.funcao === 'Gestora' || data.funcao === 'Auditora') {
-            window.location.href = 'gestao.html';
-        } 
-        // Caso contrário (Assistentes), vai para produtividade.html
-        else {
-            window.location.href = 'produtividade.html';
-        }
-    }
-</script>
-
-</body>
-</html>
+// Dentro da função fazerLogin no index.html
+if (data.funcao === 'Gestora' || data.funcao === 'Auditora') {
+    // Se ela for gestora, você decide: quer que ela caia na Gestão ou na Produtividade?
+    // Vamos enviar para Gestão, e de lá ela clica para ir à Produtividade.
+    window.location.href = 'gestao.html'; 
+} else {
+    window.location.href = 'produtividade.html';
+}
