@@ -12,6 +12,7 @@
         h2 { text-align: center; color: #1e293b; margin-bottom: 1.5rem; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .error { color: #dc2626; font-size: 0.8rem; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -20,7 +21,7 @@
         <input type="number" id="user-id" placeholder="Digite seu ID">
         <input type="password" id="user-pass" placeholder="Sua senha">
         <button onclick="fazerLogin()">Entrar</button>
-        <p id="msg-erro" style="color:red; text-align:center; font-size:0.8rem;"></p>
+        <p id="msg-erro" class="error"></p>
     </div>
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
