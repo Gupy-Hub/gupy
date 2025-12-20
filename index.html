@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Produtividade - Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #24b47e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #1e9668; }
+        .hidden { display: none; }
+        .message { color: red; font-size: 14px; text-align: center; }
+    </style>
+</head>
+<body>
 
+<div class="container" id="login-section">
+    <h2>Login - Produtividade</h2>
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="password" placeholder="Senha">
+    <button onclick="handleLogin()">Entrar</button>
+    <p class="message" id="login-error"></p>
+</div>
+
+<div class="container hidden" id="change-password-section">
+    <h2>Nova Senha</h2>
+    <p>Este é o seu primeiro acesso. Por favor, escolha uma nova senha.</p>
+    <input type="password" id="new-password" placeholder="Nova Senha">
+    <button onclick="handleChangePassword()">Atualizar e Entrar</button>
+    <p class="message" id="password-error"></p>
+</div>
+
+<div class="container hidden" id="admin-section">
+    <h2>Painel Admin (Pedro)</h2>
+    <p>Cadastrar Novo Assistente:</p>
+    <input type="email" id="new-user-email" placeholder="E-mail do Assistente">
+    <input type="password" id="new-user-password" placeholder="Senha Inicial">
+    <button onclick="handleCreateUser()">Cadastrar Assistente</button>
+    <button onclick="handleLogout()" style="margin-top: 10px; background-color: #666;">Sair</button>
+    <p id="admin-msg" style="text-align:center;"></p>
+</div>
+
+<script>
+    // Configuração do Supabase
+    const SUPABASE_URL = 'https://glqrpsyjwozvislyxapj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Função de Login
+    async function handleLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            document.getElementById('login-error').innerText = "Erro: " + error.message;
+        } else {
+            checkUserStatus(data.user);
+        }
+    }
+
+    // Verifica se é o primeiro acesso ou se é o Admin (Pedro)
+    async function checkUserStatus(user) {
+        // Se for o Pedro (admin), vamos assumir o email dele como admin@exemplo.com por agora
+        if (user.email === 'admin@exemplo.com') { // Vamos ajustar isso abaixo
+            showSection('admin-section');
+            return;
+        }
+
+        // Verifica na tabela 'perfis' se é o primeiro acesso
+        const { data: perfil } = await supabase.from('perfis').select('primeiro_acesso').eq('id', user.id).single();
+
+        if (perfil && perfil.primeiro_acesso) {
+            showSection('change-password-section');
+        } else {
+            alert("Bem-vindo ao Painel de Produtividade!");
+            // Aqui levaremos para a tela de registro de produção no futuro
+        }
+    }
+
+    // Trocar senha no primeiro acesso
+    async function handleChangePassword() {
+        const newPassword = document.getElementById('new-password').value;
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+        if (error) {
+            document.getElementById('password-error').innerText = error.message;
+        } else {
+            // Atualiza na tabela que já não é o primeiro acesso
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from('perfis').update({ primeiro_acesso: false }).eq('id', user.id);
+            alert("Senha atualizada com sucesso!");
+            location.reload();
+        }
+    }
+
+    // Pedro criando novos usuários (Simulação inicial)
+    async function handleCreateUser() {
+        const email = document.getElementById('new-user-email').value;
+        const password = document.getElementById('new-user-password').value;
+        
+        // No Supabase, a criação de usuários por outro usuário requer funções específicas (Edge Functions)
+        // Por agora, o admin usará o próprio sistema de Sign Up do Supabase
+        const { data, error } = await supabase.auth.signUp({ email, password });
+
+        if (error) {
+            document.getElementById('admin-msg').innerText = "Erro: " + error.message;
+        } else {
+            // Cria o perfil na tabela 'perfis'
+            await supabase.from('perfis').insert([{ id: data.user.id, nome: email, primeiro_acesso: true }]);
+            document.getElementById('admin-msg').innerText = "Assistente cadastrado com sucesso!";
+        }
+    }
+
+    function showSection(id) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('change-password-section').classList.add('hidden');
+        document.getElementById('admin-section').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    async function handleLogout() {
+        await supabase.auth.signOut();
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
