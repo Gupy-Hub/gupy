@@ -7,45 +7,51 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #e11d48; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .btn { padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background: #e2e8f0; margin-right: 5px; font-weight: bold; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 0.9rem; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #f1f5f9; margin-right: 5px; font-weight: 600; color: #64748b; }
         .tab-btn.active { background: var(--primary); color: white; }
         .hidden { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        input, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; margin-bottom: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        input, select { padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2>Painel de Gestão</h2>
+        <h2 style="margin:0; font-size: 1.2rem;">Painel de Controle</h2>
         <div>
-            <button class="btn" onclick="window.location.href='produtividade.html'" style="background:#0284c7;">📊 Ir para Produtividade</button>
+            <button class="btn" onclick="window.location.href='produtividade.html'" style="background:#0284c7;">📊 Acessar Dashboard</button>
             <button class="btn" onclick="localStorage.removeItem('usuario'); window.location.href='index.html'" style="background:#64748b; margin-left:10px;">Sair</button>
         </div>
     </div>
     <div class="card">
-        <button class="tab-btn active" id="btn-u" onclick="switchTab('usuarios')">Usuários</button>
-        <button class="tab-btn" id="btn-m" onclick="switchTab('metas')">Metas</button>
-        <div id="tab-usuarios" style="margin-top:20px;">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
-                <input type="number" id="u-id" placeholder="ID">
-                <input type="text" id="u-nome" placeholder="Nome">
+        <div style="margin-bottom: 20px;">
+            <button class="tab-btn active" id="btn-u" onclick="switchTab('usuarios')">Equipe</button>
+            <button class="tab-btn" id="btn-m" onclick="switchTab('metas')">Metas Vigentes</button>
+        </div>
+        
+        <div id="tab-usuarios">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom: 15px;">
+                <input type="number" id="u-id" placeholder="ID Numérico">
+                <input type="text" id="u-nome" placeholder="Nome da Assistente">
                 <select id="u-fun"><option value="Assistente">Assistente</option><option value="Auditora">Auditora</option><option value="Gestora">Gestora</option></select>
                 <select id="u-con"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="CLT PCD">CLT PCD</option></select>
             </div>
-            <button class="btn" style="background:#10b981;" onclick="addU()">Salvar</button>
+            <button class="btn" style="background:#10b981;" onclick="addU()">Salvar Cadastro</button>
             <table id="lista-u"><thead><tr><th>ID</th><th>Nome</th><th>Função</th><th>Contrato</th></tr></thead><tbody></tbody></table>
         </div>
-        <div id="tab-metas" class="hidden" style="margin-top:20px;">
-            <select id="m-user" style="width:100%; max-width:300px;"></select>
-            <input type="number" id="m-val" placeholder="Meta">
-            <input type="date" id="m-data">
-            <button class="btn" style="background:var(--primary);" onclick="addM()">Salvar Meta</button>
-            <table id="lista-m"><thead><tr><th>Nome</th><th>Meta</th><th>Início</th></tr></thead><tbody></tbody></table>
+
+        <div id="tab-metas" class="hidden">
+            <div style="display:flex; gap:12px; margin-bottom: 15px; flex-wrap: wrap;">
+                <select id="m-user" style="flex:1; min-width: 200px;"></select>
+                <input type="number" id="m-val" placeholder="Meta Diária" style="width: 150px;">
+                <input type="date" id="m-data">
+            </div>
+            <button class="btn" style="background:var(--primary);" onclick="addM()">Atualizar Meta</button>
+            <table id="lista-m"><thead><tr><th>Colaborador</th><th>Meta</th><th>Início</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
 <script>
