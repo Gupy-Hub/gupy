@@ -155,6 +155,7 @@
                 </div>
                 <div class="stat-row">
                     <div class="stat-item"><span class="label">Total Assistentes</span><span class="value" id="p-headcount">0</span></div>
+                    <div class="stat-item right"><span class="label">Dias Trabalhados</span><span class="value small-val" id="p-dias">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
@@ -361,7 +362,6 @@
             const ating = metaV > 0 ? ((p.quantidade / metaV)*100).toFixed(0) : 0;
             const corB = ating >= 100 ? '#34d399' : '#f87171';
             
-            // CORREÇÃO UNDEFINED: Usando as propriedades corretas stats_acum_sem
             html += `<tr class="data-row">
                 <td><b>${p.usuarios?.nome || p.usuario_id}</b></td>
                 <td style="text-align:center; color:#f87171; font-weight:700">${p.quantidade}</td>
@@ -380,35 +380,43 @@
         const todosValidos = dados.filter(p => p.usuario_id != null);
         const apenasAs = todosValidos.filter(p => p.usuarios?.funcao === 'Assistente');
         const total = todosValidos.reduce((a,b) => a + b.quantidade, 0);
-        const dias = new Set(todosValidos.map(p => p.data_referencia)).size || 1;
+        const numDias = new Set(todosValidos.map(p => p.data_referencia)).size; // Dias trabalhados
         const head = new Set(apenasAs.map(p => p.usuario_id)).size || 1;
 
         document.getElementById('panel-titulo').innerText = titulo;
         document.getElementById('panel-info-extra').innerText = `${head} Assistentes Ativos`;
+        
         document.getElementById('p-total').innerText = total.toLocaleString();
-        document.getElementById('p-media').innerText = (total / dias / (head || 1)).toFixed(0);
+        document.getElementById('p-media').innerText = (total / (numDias || 1) / head).toFixed(0);
         document.getElementById('p-headcount').innerText = head;
+        document.getElementById('p-dias').innerText = numDias;
 
+        // Cálculos CLT
         const clt = todosValidos.filter(p => (p.usuarios?.contrato || '').includes('CLT'));
         const headClt = new Set(apenasAs.filter(p => (p.usuarios?.contrato || '').includes('CLT')).map(x => x.usuario_id)).size || 1;
         const tClt = clt.reduce((a,b) => a + b.quantidade, 0);
         document.getElementById('p-clt').innerText = tClt.toLocaleString();
-        document.getElementById('p-clt-media').innerText = (tClt / dias / (headClt || 1)).toFixed(0);
+        document.getElementById('p-clt-media').innerText = (tClt / (numDias || 1) / headClt).toFixed(0);
 
+        // Cálculos PJ
         const pj = todosValidos.filter(p => !(p.usuarios?.contrato || '').includes('CLT') && p.usuarios);
         const headPj = new Set(apenasAs.filter(p => !(p.usuarios?.contrato || '').includes('CLT')).map(x => x.usuario_id)).size || 1;
         const tPj = pj.reduce((a,b) => a + b.quantidade, 0);
         document.getElementById('p-pj').innerText = tPj.toLocaleString();
-        document.getElementById('p-pj-media').innerText = (tPj / dias / (headPj || 1)).toFixed(0);
+        document.getElementById('p-pj-media').innerText = (tPj / (numDias || 1) / headPj).toFixed(0);
 
+        // Categorias
         document.getElementById('p-fifo').innerText = todosValidos.reduce((a,b) => a + b.fifo, 0).toLocaleString();
-        document.getElementById('p-fifo-media').innerText = (todosValidos.reduce((a,b) => a + b.fifo, 0) / dias / (head || 1)).toFixed(0);
+        document.getElementById('p-fifo-media').innerText = (todosValidos.reduce((a,b) => a + b.fifo, 0) / (numDias || 1) / head).toFixed(0);
+        
         document.getElementById('p-gt').innerText = todosValidos.reduce((a,b) => a + b.gradual_total, 0).toLocaleString();
-        document.getElementById('p-gt-media').innerText = (todosValidos.reduce((a,b) => a + b.gradual_total, 0) / dias / (head || 1)).toFixed(0);
+        document.getElementById('p-gt-media').innerText = (todosValidos.reduce((a,b) => a + b.gradual_total, 0) / (numDias || 1) / head).toFixed(0);
+        
         document.getElementById('p-gp').innerText = todosValidos.reduce((a,b) => a + b.gradual_parcial, 0).toLocaleString();
-        document.getElementById('p-gp-media').innerText = (todosValidos.reduce((a,b) => a + b.gradual_parcial, 0) / dias / (head || 1)).toFixed(0);
+        document.getElementById('p-gp-media').innerText = (todosValidos.reduce((a,b) => a + b.gradual_parcial, 0) / (numDias || 1) / head).toFixed(0);
+        
         document.getElementById('p-fc').innerText = todosValidos.reduce((a,b) => a + b.perfil_fc, 0).toLocaleString();
-        document.getElementById('p-fc-media').innerText = (todosValidos.reduce((a,b) => a + b.perfil_fc, 0) / dias / (head || 1)).toFixed(0);
+        document.getElementById('p-fc-media').innerText = (todosValidos.reduce((a,b) => a + b.perfil_fc, 0) / (numDias || 1) / head).toFixed(0);
     }
 
     async function importarArquivos() {
