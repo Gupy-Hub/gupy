@@ -6,87 +6,88 @@
     <title>Controle de Produtividade</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- PALETA PASTEL SOFISTICADA --- */
+        /* --- PALETA PASTEL --- */
         :root { 
-            /* Indicadores (Pastel) */
-            --clt: #5b9bd5;        /* Azul Pastel */
-            --pj: #70ad47;         /* Verde Suave */
-            --fifo: #ffc000;       /* Amarelo Ouro */
-            --gt: #a5a5a5;         /* Cinza Quente */
-            --gp: #ed7d31;         /* Laranja Pastel */
-            --fc: #9e480e;         /* Terracota */
-            --status-ok: #5b9bd5;
-            --status-low: #ed7d31;
+            --primary: #f87171;    /* Vermelho Pastel */
+            --clt: #60a5fa;        /* Azul Pastel */
+            --pj: #34d399;         /* Verde Menta */
+            --fifo: #fbbf24;       /* Amarelo Pastel */
+            --gt: #a8a29e;         /* Cinza Quente */
+            --gp: #fb923c;         /* Laranja Pastel */
+            --fc: #c084fc;         /* Roxo Pastel */
 
-            /* Estrutura */
-            --bg: #f3f4f6;              /* Fundo Geral */
-            --nav: #2c3e50;             /* Azul Petróleo Escuro (Navbar) */
-            --panel-bg: #ffffff;        /* Fundo do Painel Branco */
-            --header-dark: #34495e;     /* Divisor de Datas Escuro */
-            
+            --bg: #f3f4f6;              
+            --nav: #1e293b;             /* Azul Escuro (Navbar) */
+            --header-dark: #334155;     /* Divisor de Datas Escuro */
+            --card: #ffffff;            
             --border: #e5e7eb;          
-            --text-main: #1f2937;       
-            --text-muted: #6b7280;
+            --text-main: #374151;       
+            --text-muted: #9ca3af;
 
             /* Zebrado Forte */
-            --zebra-even: #e2e8f0;      /* Cinza Azulado visível */
-            --zebra-hover: #cbd5e1;     /* Mais escuro ao passar o mouse */
+            --zebra-even: #e2e8f0;      /* Cinza visível */
+            --zebra-hover: #cbd5e1;     /* Mais escuro no hover */
         }
         
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: var(--text-main); }
 
-        /* NAVBAR ESCURA */
+        /* NAVBAR */
         .navbar { position: fixed; top: 0; left: 0; right: 0; height: 75px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .nav-left { display: flex; align-items: center; gap: 20px; }
         .brand .small { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; color: #cbd5e1; display: block; }
         .brand .big { font-size: 1.1rem; font-weight: 700; color: white; }
         
-        /* SELETORES */
-        .nav-tools { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-tools { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; }
         .nav-tools option { background: var(--nav); color: white; }
         
         .nav-links { display: flex; gap: 20px; margin-left: 20px; }
         .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .nav-item.active { color: white; border-bottom: 2px solid #ed7d31; }
+        .nav-item.active { color: white; border-bottom: 2px solid var(--primary); }
 
-        .btn-import { background: #ed7d31; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+        .btn-import { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
         .btn-import:hover { filter: brightness(1.1); }
 
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* MINI PAINEL CLEAN */
-        .dynamic-panel { background: var(--panel-bg); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 4px solid var(--nav); }
+        /* --- MINI PAINEL ALINHADO --- */
+        .dynamic-panel { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 4px solid var(--nav); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .panel-header h2 { color: var(--nav); font-size: 1.1rem; margin: 0; font-weight: 700; }
         
-        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
-        .panel-column { display: flex; flex-direction: column; gap: 15px; border-right: 1px solid var(--border); padding-right: 20px; }
+        /* Grid de 4 Colunas */
+        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+        
+        /* Coluna com borda à direita (exceto a última) */
+        .panel-column { display: flex; flex-direction: column; gap: 20px; padding: 0 20px; border-right: 1px solid var(--border); }
         .panel-column:last-child { border-right: none; }
         
-        .stat-group { display: flex; justify-content: space-between; align-items: flex-start; }
+        /* Linha de Estatística (Total à esq, Média à dir) */
+        .stat-row { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
         
-        /* Tipografia Painel */
-        .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 5px; }
-        .value { font-size: 1.3rem; font-weight: 700; color: var(--text-main); }
-        .value.small-val { font-size: 0.95rem; opacity: 0.8; }
+        .stat-item { display: flex; flex-direction: column; }
+        .stat-item.right { text-align: right; }
 
-        .color-clt { color: var(--clt); }
-        .color-pj { color: var(--pj); }
-        .color-fifo { color: var(--fifo); }
-        .color-gt { color: var(--gt); }
-        .color-gp { color: var(--gp); }
-        .color-fc { color: var(--fc); }
+        /* Tipografia Padronizada */
+        .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .value { font-size: 1.2rem; font-weight: 700; color: var(--nav); line-height: 1; }
+        .value.small-val { font-size: 1rem; opacity: 0.8; }
+
+        /* Classes de Cores para os Números */
+        .txt-clt { color: var(--clt); }
+        .txt-pj { color: var(--pj); }
+        .txt-fifo { color: var(--fifo); }
+        .txt-gt { color: var(--gt); }
+        .txt-gp { color: var(--gp); }
+        .txt-fc { color: var(--fc); }
 
         /* TABELA */
-        .table-wrap { background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .table-wrap { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1100px; }
         
-        /* Cabeçalho das Colunas */
         th { background: #f8fafc; padding: 12px 15px; text-align: left; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; border-bottom: 2px solid var(--border); }
-        
         td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-main); }
         
         /* ZEBRADO FORTE */
@@ -95,21 +96,15 @@
         
         /* DIVISOR DE DATA ESCURO */
         .divider-row { background: var(--header-dark) !important; }
-        .divider-row td { 
-            color: white !important; 
-            font-weight: 700; 
-            font-size: 0.85rem; 
-            padding: 12px 15px;
-            border: none;
-        }
+        .divider-row td { color: white !important; font-weight: 700; font-size: 0.85rem; padding: 10px 15px; border: none; }
 
-        /* Repetição de Cabeçalho na Tabela */
-        .header-repeated th { background: #e2e8f0; color: #475569; border-bottom: 1px solid #cbd5e1; font-size: 0.65rem; padding: 8px 15px; }
+        /* CABEÇALHO REPETIDO */
+        .header-repeated th { background: #e5e7eb; color: #4b5563; border-bottom: 1px solid #d1d5db; font-size: 0.65rem; padding: 8px 15px; }
 
         .badge { padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; color: white; display: inline-block; }
         
         .hidden { display: none !important; }
-        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; border-left: 5px solid var(--gp); display: none; min-width: 300px; }
+        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; border-left: 5px solid var(--primary); display: none; min-width: 300px; }
     </style>
 </head>
 <body>
@@ -154,42 +149,42 @@
         </div>
         <div class="panel-grid">
             <div class="panel-column">
-                <div class="stat-group">
+                <div class="stat-row">
                     <div class="stat-item"><span class="label">Total Geral</span><span class="value" id="p-total">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div>
+                    <div class="stat-item right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div>
                 </div>
-                <div class="stat-group">
+                <div class="stat-row">
                     <div class="stat-item"><span class="label">Total Assistentes</span><span class="value" id="p-headcount">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total CLT</span><span class="value color-clt" id="p-clt">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Média CLT</span><span class="value small-val color-clt" id="p-clt-media">0</span></div>
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total CLT</span><span class="value txt-clt" id="p-clt">0</span></div>
+                    <div class="stat-item right"><span class="label">Média CLT</span><span class="value small-val txt-clt" id="p-clt-media">0</span></div>
                 </div>
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total PJ</span><span class="value color-pj" id="p-pj">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Média PJ</span><span class="value small-val color-pj" id="p-pj-media">0</span></div>
-                </div>
-            </div>
-            <div class="panel-column">
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total FIFO</span><span class="value color-fifo" id="p-fifo">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Méd. FIFO</span><span class="value small-val color-fifo" id="p-fifo-media">0</span></div>
-                </div>
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total GT</span><span class="value color-gt" id="p-gt">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Méd. GT</span><span class="value small-val color-gt" id="p-gt-media">0</span></div>
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total PJ</span><span class="value txt-pj" id="p-pj">0</span></div>
+                    <div class="stat-item right"><span class="label">Média PJ</span><span class="value small-val txt-pj" id="p-pj-media">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total GP</span><span class="value color-gp" id="p-gp">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Méd. GP</span><span class="value small-val color-gp" id="p-gp-media">0</span></div>
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total FIFO</span><span class="value txt-fifo" id="p-fifo">0</span></div>
+                    <div class="stat-item right"><span class="label">Méd. FIFO</span><span class="value small-val txt-fifo" id="p-fifo-media">0</span></div>
                 </div>
-                <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total FC</span><span class="value color-fc" id="p-fc">0</span></div>
-                    <div class="stat-item" style="text-align:right"><span class="label">Méd. FC</span><span class="value small-val color-fc" id="p-fc-media">0</span></div>
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total GT</span><span class="value txt-gt" id="p-gt">0</span></div>
+                    <div class="stat-item right"><span class="label">Méd. GT</span><span class="value small-val txt-gt" id="p-gt-media">0</span></div>
+                </div>
+            </div>
+            <div class="panel-column">
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total GP</span><span class="value txt-gp" id="p-gp">0</span></div>
+                    <div class="stat-item right"><span class="label">Méd. GP</span><span class="value small-val txt-gp" id="p-gp-media">0</span></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-item"><span class="label">Total FC</span><span class="value txt-fc" id="p-fc">0</span></div>
+                    <div class="stat-item right"><span class="label">Méd. FC</span><span class="value small-val txt-fc" id="p-fc-media">0</span></div>
                 </div>
             </div>
         </div>
@@ -199,7 +194,7 @@
         <table>
             <thead id="main-thead">
                 <tr>
-                    <th>Assistente</th><th style="text-align:center; color:var(--gp)">Produção</th>
+                    <th>Assistente</th><th style="text-align:center; color:var(--primary)">Produção</th>
                     <th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th>
                     <th>Acum. Sem.</th><th>Acum. Mês</th><th>Média Sem.</th><th>Média Mês</th><th>Status</th>
                 </tr>
@@ -221,7 +216,6 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     let dadosGlobais = [], metasGlobais = [];
 
-    // Inicialização
     const hoje = new Date();
     document.getElementById('select-dia').value = hoje.toISOString().substring(0,10);
     document.getElementById('select-mes').value = hoje.toISOString().substring(0,7);
@@ -230,7 +224,6 @@
 
     function sincronizarMes() {
         const mesSelected = document.getElementById('select-mes').value;
-        // Quando muda o mês, reseta o dia para o dia 01 daquele mês
         document.getElementById('select-dia').value = `${mesSelected}-01`;
         carregarDados();
     }
@@ -238,7 +231,6 @@
     function ajustarSeletores() {
         const v = document.getElementById('view-selector').value;
         
-        // LÓGICA DE EXIBIÇÃO DE SELETORES (Restaurada)
         if (v === 'dia') {
             document.getElementById('select-dia').classList.remove('hidden');
             document.getElementById('select-semana').classList.add('hidden');
@@ -246,15 +238,13 @@
         } else if (v === 'semana') {
             document.getElementById('select-dia').classList.add('hidden');
             document.getElementById('select-semana').classList.remove('hidden');
-            document.getElementById('select-mes').classList.remove('hidden'); // Mostra mês para saber qual semana de qual mês
+            document.getElementById('select-mes').classList.remove('hidden');
         } else {
-            // Mes
             document.getElementById('select-dia').classList.add('hidden');
             document.getElementById('select-semana').classList.add('hidden');
             document.getElementById('select-mes').classList.remove('hidden');
         }
 
-        // Controle de exibição do cabeçalho fixo da tabela
         const mainThead = document.getElementById('main-thead');
         if(v === 'dia') mainThead.style.display = 'table-header-group';
         else mainThead.style.display = 'none';
@@ -264,7 +254,6 @@
 
     async function carregarDados() {
         const v = document.getElementById('view-selector').value;
-        // Pega o mês selecionado (seja pelo seletor de dia ou de mês)
         let mesStr = '';
         if (v === 'dia') {
             mesStr = document.getElementById('select-dia').value.substring(0,7);
@@ -272,7 +261,6 @@
             mesStr = document.getElementById('select-mes').value;
         }
 
-        // Busca dados do MÊS INTEIRO para cálculos corretos
         const { data: pData } = await _supabase.from('producao')
             .select('*, usuarios(*)')
             .gte('data_referencia', `${mesStr}-01`)
@@ -286,11 +274,8 @@
         alternarVisao();
     }
 
-    // CORREÇÃO DO CÁLCULO DE ESTATÍSTICAS
     function processarEstatisticas(todosDados) {
         let stats = {};
-        
-        // Ordena por data crescente para acumular corretamente
         const dadosOrdenados = [...todosDados].sort((a,b) => a.data_referencia.localeCompare(b.data_referencia));
 
         dadosOrdenados.forEach(p => {
@@ -301,20 +286,17 @@
             if(!stats[uid]) stats[uid] = { m: 0, d: 0, s: {} };
             if(!stats[uid].s[wk]) stats[uid].s[wk] = { t: 0, d: 0 };
 
-            // Acumula
             stats[uid].m += (p.quantidade || 0);
             stats[uid].d++;
             stats[uid].s[wk].t += (p.quantidade || 0);
             stats[uid].s[wk].d++;
 
-            // Grava os valores calculados NO OBJETO DE DADOS (Snapshot)
             p.stats_acum_sem = stats[uid].s[wk].t;
             p.stats_media_sem = (stats[uid].s[wk].t / stats[uid].s[wk].d).toFixed(0);
             p.stats_acum_mes = stats[uid].m;
             p.stats_media_mes = (stats[uid].m / stats[uid].d).toFixed(0);
         });
-        
-        return dadosOrdenados.reverse(); // Retorna reverso para exibição (mais recente primeiro)
+        return dadosOrdenados.reverse();
     }
 
     function getWeekOfMonth(dateStr) {
@@ -325,9 +307,7 @@
     }
 
     function alternarVisao() {
-        // Primeiro processa estatísticas em TUDO
         const dadosCalculados = processarEstatisticas(dadosGlobais);
-        
         const visao = document.getElementById('view-selector').value;
         let filtrados = [], titulo = "";
         
@@ -344,7 +324,6 @@
             titulo = `Relatório Mensal`;
         }
         
-        // Ordenação por DATA (DESC) e NOME (ASC)
         filtrados.sort((a, b) => b.data_referencia.localeCompare(a.data_referencia) || (a.usuarios?.nome || "").localeCompare(b.usuarios?.nome || ""));
         
         atualizarPainel(filtrados, titulo);
@@ -355,7 +334,7 @@
         const headerHTML = `
             <tr class="header-repeated">
                 <th>Assistente</th>
-                <th style="text-align:center; color:#ed7d31">Produção</th>
+                <th style="text-align:center; color:#f87171">Produção</th>
                 <th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th>
                 <th>Acum. Sem.</th><th>Acum. Mês</th><th>Média Sem.</th><th>Média Mês</th><th>Status</th>
             </tr>
@@ -364,7 +343,7 @@
         let html = '', lastD = '';
         
         if(dados.length === 0) {
-            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#6b7280;">Nenhum dado encontrado para o período.</td></tr>';
+            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#9ca3af;">Nenhum dado encontrado para o período.</td></tr>';
             return;
         }
 
@@ -380,13 +359,12 @@
             const meta = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
             const metaV = meta ? meta.valor_meta : 0;
             const ating = metaV > 0 ? ((p.quantidade / metaV)*100).toFixed(0) : 0;
-            const corB = ating >= 100 ? '#5b9bd5' : '#ed7d31';
+            const corB = ating >= 100 ? '#34d399' : '#f87171';
             
-            // Aqui usamos os valores pré-calculados na função processarEstatisticas
-            // Usamos || '-' para garantir que não apareça undefined
+            // CORREÇÃO UNDEFINED: Usando as propriedades corretas stats_acum_sem
             html += `<tr class="data-row">
                 <td><b>${p.usuarios?.nome || p.usuario_id}</b></td>
-                <td style="text-align:center; color:#ed7d31; font-weight:700">${p.quantidade}</td>
+                <td style="text-align:center; color:#f87171; font-weight:700">${p.quantidade}</td>
                 <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
                 <td>${p.stats_acum_sem || '-'}</td>
                 <td>${p.stats_acum_mes || '-'}</td>
@@ -398,7 +376,6 @@
         document.getElementById('tabela-corpo').innerHTML = html;
     }
 
-    // Função de Painel (Mantida igual, pois estava correta na lógica de soma)
     function atualizarPainel(dados, titulo) {
         const todosValidos = dados.filter(p => p.usuario_id != null);
         const apenasAs = todosValidos.filter(p => p.usuarios?.funcao === 'Assistente');
@@ -453,7 +430,7 @@
                 logs.sucesso++;
             }
         }
-        document.getElementById('log-content').innerHTML = `Lidas: ${logs.total_linhas}<br>✅ Importadas: ${logs.sucesso}<br>🔁 Duplicadas: ${logs.duplicados}`;
+        document.getElementById('log-content').innerHTML = `Lidas: ${logs.total_linhas}<br>✅ Importadas: ${logs.sucesso}<br>🔁 Duplicados: ${logs.duplicados}`;
         document.getElementById('import-log').style.display = 'block';
         carregarDados();
     }
