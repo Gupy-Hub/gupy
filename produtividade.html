@@ -11,6 +11,7 @@
         :root { --primary: #e11d48; --clt: #0284c7; --pj: #7c3aed; --bg: #f8fafc; --nav: #1e293b; --border: #e2e8f0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: #1e293b; }
 
+        /* NAVBAR SaaS */
         .navbar { position: fixed; top: 0; left: 0; right: 0; height: 75px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .nav-left { display: flex; align-items: center; gap: 20px; }
         .brand { line-height: 1; cursor: pointer; min-width: 150px; }
@@ -31,6 +32,7 @@
 
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
+        /* MINI PAINEL DE CONTEXTO */
         .dynamic-panel { background: #1e293b; color: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 6px solid var(--primary); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -42,14 +44,22 @@
         .value { font-size: 1.05rem; font-weight: 800; }
         .value.small-val { font-size: 0.9rem; color: #cbd5e1; }
 
+        /* TABELA COM ZEBRA E HOVER */
         .table-wrap { background: white; border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1100px; }
-        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #64748b; }
+        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #64748b; font-weight: 700; }
         td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Estilo Zebra */
+        tbody tr:nth-child(even) { background-color: #f9fafb; }
+        tbody tr:hover { background-color: #f1f5f9; }
+        
         .divider-row { background: #f1f5f9 !important; font-weight: 800; font-size: 0.7rem; color: #475569; }
         .badge { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; color: white; }
         
         .hidden { display: none !important; }
+
+        /* LOG DE IMPORTAÇÃO */
         #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; border-top: 4px solid var(--primary); display: none; min-width: 280px; }
     </style>
 </head>
@@ -68,6 +78,7 @@
                 <option value="mes">📊 Consolidado Mensal</option>
             </select>
             <div style="width:1px; height:20px; background:#475569;"></div>
+            
             <input type="month" id="select-mes" onchange="sincronizarMes()">
             <input type="date" id="select-dia" onchange="carregarDados()">
             <select id="select-semana" class="hidden" onchange="alternarVisao()">
@@ -84,7 +95,7 @@
         <button class="btn-import" onclick="document.getElementById('excel-files').click()">📥 Importar Planilhas</button>
         <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
         <div style="text-align: right; border-left: 1px solid #334155; padding-left: 20px;">
-            <span id="user-display" style="font-weight:700; font-size:0.85rem; color:white; display:block;"></span>
+            <span id="user-display" style="font-weight:700; font-size:0.85rem; color:white; display:block;">Patrícia</span>
             <span style="color: #f87171; font-size: 0.7rem; cursor: pointer; font-weight: 700;" onclick="logout()">Sair</span>
         </div>
     </div>
@@ -93,9 +104,10 @@
 <div class="container">
     <div id="panel-contexto" class="dynamic-panel">
         <div class="panel-header">
-            <h2 id="panel-titulo" style="margin:0; font-size:1rem;">Carregando...</h2>
+            <h2 id="panel-titulo" style="margin:0; font-size:1rem;">Carregando dados...</h2>
             <span id="panel-info-extra" style="font-size:0.7rem; font-weight:600; opacity:0.8;">-</span>
         </div>
+        
         <div class="panel-grid">
             <div class="panel-column">
                 <div class="stat-group">
@@ -116,22 +128,22 @@
             </div>
             <div class="panel-column">
                 <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total FIFO</span><span class="value" id="p-fifo">0</span></div>
-                    <div class="stat-item"><span class="label">Média FIFO</span><span class="value small-val" id="p-fifo-media">0</span></div>
+                    <div class="stat-item"><span class="label">FIFO</span><span class="value" id="p-fifo">0</span></div>
+                    <div class="stat-item"><span class="label">Méd. FIFO</span><span class="value small-val" id="p-fifo-media">0</span></div>
                 </div>
                 <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total GT</span><span class="value" id="p-gt">0</span></div>
-                    <div class="stat-item"><span class="label">Média GT</span><span class="value small-val" id="p-gt-media">0</span></div>
+                    <div class="stat-item"><span class="label">GT</span><span class="value" id="p-gt">0</span></div>
+                    <div class="stat-item"><span class="label">Méd. GT</span><span class="value small-val" id="p-gt-media">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
                 <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total GP</span><span class="value" id="p-gp">0</span></div>
-                    <div class="stat-item"><span class="label">Média GP</span><span class="value small-val" id="p-gp-media">0</span></div>
+                    <div class="stat-item"><span class="label">GP</span><span class="value" id="p-gp">0</span></div>
+                    <div class="stat-item"><span class="label">Méd. GP</span><span class="value small-val" id="p-gp-media">0</span></div>
                 </div>
                 <div class="stat-group">
-                    <div class="stat-item"><span class="label">Total FC</span><span class="value" id="p-fc">0</span></div>
-                    <div class="stat-item"><span class="label">Média FC</span><span class="value small-val" id="p-fc-media">0</span></div>
+                    <div class="stat-item"><span class="label">FC</span><span class="value" id="p-fc">0</span></div>
+                    <div class="stat-item"><span class="label">Méd. FC</span><span class="value small-val" id="p-fc-media">0</span></div>
                 </div>
             </div>
         </div>
@@ -141,7 +153,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Assistente</th><th style="text-align:center; color:var(--primary)">Produção</th>
+                    <th>Assistente</th>
+                    <th style="text-align:center; color:var(--primary)">Produção</th>
                     <th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th>
                     <th>Acum. Semana</th><th>Acum. Mês</th><th>Média Semana</th><th>Média Mês</th><th>Ating.</th>
                 </tr>
@@ -152,7 +165,7 @@
 </div>
 
 <div id="import-log">
-    <h4 style="margin:0 0 10px 0; font-size:0.85rem;">📢 Relatório de Importação</h4>
+    <h4 style="margin:0 0 10px 0; font-size:0.85rem;">📢 Resultado da Importação</h4>
     <div id="log-content" style="font-size:0.75rem; line-height:1.4"></div>
     <button onclick="this.parentElement.style.display='none'" style="margin-top:10px; width:100%; padding:8px; border:none; background:var(--nav); color:white; cursor:pointer; border-radius:6px; font-weight:700;">Fechar</button>
 </div>
@@ -237,7 +250,7 @@
         } else if(visao === 'semana') {
             const sem = parseInt(document.getElementById('select-semana').value);
             filtrados = dadosGlobais.filter(p => getWeekOfMonth(p.data_referencia) === sem);
-            titulo = `Análise Semana ${sem}`;
+            titulo = `Resumo da Semana ${sem}`;
         } else {
             filtrados = dadosGlobais;
             titulo = `Consolidado Mensal`;
