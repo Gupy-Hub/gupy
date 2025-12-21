@@ -3,87 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Produtividade Detalhado - Gupy</title>
+    <title>Dashboard Executivo - Gupy</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
+        :root { --primary: #e11d48; --clt: #3b82f6; --pj: #8b5cf6; --bg: #f8fafc; --dark: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
         .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* KPIs Layout */
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .summary-item { background: white; padding: 12px; border-radius: 10px; border-top: 4px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .kpi-label { font-size: 0.65rem; color: #64748b; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .kpi-value { font-size: 1.2rem; font-weight: 800; }
-        
+        /* Grid de KPIs */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-item { background: white; padding: 15px; border-radius: 10px; border-top: 4px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .kpi-label { font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .kpi-value { font-size: 1.4rem; font-weight: 800; }
+        .kpi-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 3px; }
+
         .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; color: white; background: var(--primary); font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.72rem; min-width: 1400px; }
-        th { background: #f1f5f9; padding: 8px; text-align: left; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
-        .dia-header { background: #e2e8f0; font-weight: 800; color: #1e293b; font-size: 0.85rem; }
-        .sub-header { background: #f8fafc; font-weight: bold; color: #64748b; font-size: 0.65rem; text-transform: uppercase; }
+        
+        /* Tabela */
+        .table-container { overflow-x: auto; background: white; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1000px; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Headers de Dia */
+        .dia-header { background: #334155; color: white; font-weight: bold; }
+        .dia-resumo { font-size: 0.75rem; font-weight: normal; color: #cbd5e1; margin-left: 20px; }
+        
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
-        .txt-bold { font-weight: bold; color: #1e293b; }
+        .txt-destaque { font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2>📊 Relatório de Produção Detalhado</h2>
-    <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Gestão</button>
+    <div>
+        <h1 style="margin:0; font-size: 1.4rem;">📊 Painel Gerencial de Produtividade</h1>
+        <p style="margin:4px 0 0; color: #64748b; font-size: 0.85rem;">Visão Consolidada CLT & PJ</p>
+    </div>
+    <button class="btn" onclick="window.location.href='gestao.html'" style="background:#64748b;">⚙️ Voltar à Gestão</button>
 </div>
 
 <div class="summary-grid">
-    <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias Trabalhados</div><div class="kpi-value" id="kpi-dias-trabalhados">0</div></div>
-    <div class="summary-item" style="border-top-color:#0ea5e9;"><div class="kpi-label">Média Assistentes/Dia</div><div class="kpi-value" id="kpi-media-as-dia">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Geral (Time)</div><div class="kpi-value" id="kpi-media-geral">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
-    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
+    <div class="summary-item" style="border-top-color:#f59e0b;"><div class="kpi-label">Dias Trabalhados</div><div class="kpi-value" id="kpi-dias">0</div><div class="kpi-sub">Total no mês</div></div>
+    <div class="summary-item" style="border-top-color:#0ea5e9;"><div class="kpi-label">Média Assistentes/Dia</div><div class="kpi-value" id="kpi-media-as-dia">0</div><div class="kpi-sub">Headcount ativo</div></div>
+    <div class="summary-item" style="border-top-color:var(--primary);"><div class="kpi-label">Média Diária Geral</div><div class="kpi-value" id="kpi-media-geral">0</div><div class="kpi-sub">Total / Assistentes</div></div>
+    <div class="summary-item" style="border-top-color:var(--clt);"><div class="kpi-label">Média Diária CLT</div><div class="kpi-value" id="kpi-media-clt">0</div></div>
+    <div class="summary-item" style="border-top-color:var(--pj);"><div class="kpi-label">Média Diária PJ</div><div class="kpi-value" id="kpi-media-pj">0</div></div>
 </div>
 
 <div class="summary-grid">
-    <div class="summary-item"><div class="kpi-label">Total FIFO</div><div class="kpi-value" id="kpi-fifo">0</div></div>
-    <div class="summary-item"><div class="kpi-label">Gradual Total</div><div class="kpi-value" id="kpi-gt">0</div></div>
-    <div class="summary-item"><div class="kpi-label">Gradual Parcial</div><div class="kpi-value" id="kpi-gp">0</div></div>
-    <div class="summary-item"><div class="kpi-label">Perfil FC</div><div class="kpi-value" id="kpi-fc">0</div></div>
+    <div class="summary-item"><div class="kpi-label">FIFO (Mês)</div><div class="kpi-value" id="kpi-fifo">0</div></div>
+    <div class="summary-item"><div class="kpi-label">Gradual Total (Mês)</div><div class="kpi-value" id="kpi-gt">0</div></div>
+    <div class="summary-item"><div class="kpi-label">Gradual Parcial (Mês)</div><div class="kpi-value" id="kpi-gp">0</div></div>
+    <div class="summary-item"><div class="kpi-label">Perfil FC (Mês)</div><div class="kpi-value" id="kpi-fc">0</div></div>
 </div>
 
 <div class="card">
-    <div style="display:flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
+    <div style="display:flex; justify-content: space-between; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
         <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Importação Múltipla (.xlsx):</label>
             <input type="file" id="excel-files" accept=".xlsx" multiple>
-            <button class="btn" onclick="importarArquivos()">Importar Planilhas</button>
+            <button class="btn" onclick="importarTudo()">Subir Planilhas</button>
         </div>
-        <input type="month" id="filtro-mes" onchange="carregarDados()">
+        <div>
+            <label style="display:block; font-size:0.8rem; margin-bottom:5px; font-weight:bold;">Mês de Análise:</label>
+            <input type="month" id="filtro-mes" onchange="carregarDados()">
+        </div>
     </div>
 </div>
 
 <div class="card" style="overflow-x:auto;">
     <table>
         <thead>
-            <tr class="sub-header">
-                <th colspan="2">Informações</th>
-                <th colspan="5">Produção do Dia</th>
-                <th colspan="3">Médias Individuais</th>
-                <th colspan="2">Status</th>
-            </tr>
             <tr>
                 <th>Data</th>
                 <th>Assistente</th>
-                <th>FIFO</th>
-                <th>GT</th>
-                <th>GP</th>
-                <th>FC</th>
                 <th style="background:#fff1f2">Total Dia</th>
+                <th>Total Semana</th>
+                <th>Total Mês</th>
                 <th>Média Semanal</th>
                 <th>Média Mensal</th>
-                <th>Total Mês</th>
                 <th>Ating.</th>
             </tr>
         </thead>
-        <tbody id="tabela-corpo"></tbody>
+        <tbody id="tabela-corpo">
+            <tr><td colspan="8" style="text-align:center; padding:30px;">Aguardando dados...</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -94,7 +101,7 @@
 
     document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
-    async function importarArquivos() {
+    async function importarTudo() {
         const files = document.getElementById('excel-files').files;
         if(files.length === 0) return alert("Selecione arquivos!");
         for(let file of files) {
@@ -103,7 +110,7 @@
             const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
             const buffer = await file.arrayBuffer();
             const wb = XLSX.read(buffer, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(wb.Sheets[workbook.SheetNames[0]]);
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             const ins = json.map(r => ({
                 usuario_id: r.id_assistente,
                 fifo: Number(r.documentos_validados_fifo || 0),
@@ -129,27 +136,33 @@
         const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mesStr}-01`).lte('data_referencia', `${mesStr}-31`).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
 
-        if(!pData) return;
+        if(!pData || pData.length === 0) {
+            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="8" style="text-align:center;">Sem dados para este mês.</td></tr>';
+            return;
+        }
 
-        let ind = {}; 
-        let kpi = { totalG:0, fifo:0, gt:0, gp:0, fc:0, nomesUnicos:new Set(), diasUnicos:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set(), assistentesPorDia: {} };
+        let ind = {}; // Acumulados por assistente
+        let kpi = { totalG:0, fifo:0, gt:0, gp:0, fc:0, nomesU:new Set(), diasU:new Set(), totalC:0, diasC:new Set(), totalP:0, diasP:new Set(), assistPorDia: {} };
+        let resumoDia = {}; // Agrupamento para o header da tabela
 
         pData.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
             const uid = p.usuario_id;
             const qtd = Number(p.quantidade);
-            const data = p.data_referencia;
-            const wk = getWeek(new Date(data + 'T12:00:00'));
+            const dr = p.data_referencia;
+            const wk = getWeek(new Date(dr + 'T12:00:00'));
             const isCLT = (p.usuarios.contrato || '').includes('CLT');
 
             // Globais
             kpi.totalG += qtd; kpi.fifo += p.fifo; kpi.gt += p.gradual_total; kpi.gp += p.gradual_parcial; kpi.fc += p.perfil_fc;
-            kpi.nomesUnicos.add(p.usuarios.nome); kpi.diasUnicos.add(data);
-            
-            // Média assistentes por dia
-            if(!kpi.assistentesPorDia[data]) kpi.assistentesPorDia[data] = new Set();
-            kpi.assistentesPorDia[data].add(p.usuarios.nome);
+            kpi.nomesU.add(p.usuarios.nome); kpi.diasU.add(dr);
+            if(!kpi.assistPorDia[dr]) kpi.assistPorDia[dr] = new Set();
+            kpi.assistPorDia[dr].add(p.usuarios.nome);
 
-            if(isCLT) { kpi.totalC += qtd; kpi.diasC.add(data); } else { kpi.totalP += qtd; kpi.diasP.add(data); }
+            if(isCLT) { kpi.totalC += qtd; kpi.diasC.add(dr); } else { kpi.totalP += qtd; kpi.diasP.add(dr); }
+
+            // Resumo Diário para o Header
+            if(!resumoDia[dr]) resumoDia[dr] = { fifo:0, gt:0, gp:0, fc:0, total:0 };
+            resumoDia[dr].fifo += p.fifo; resumoDia[dr].gt += p.gradual_total; resumoDia[dr].gp += p.gradual_parcial; resumoDia[dr].fc += p.perfil_fc; resumoDia[dr].total += qtd;
 
             // Individuais
             if(!ind[uid]) ind[uid] = { mes:0, dias:0, semanas:{} };
@@ -160,41 +173,41 @@
 
         let html = ''; let ultimaData = '';
         pData.forEach(p => {
-            const dataAt = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
-            if (dataAt !== ultimaData) { html += `<tr class="dia-header"><td colspan="11">📅 Dia ${dataAt}</td></tr>`; ultimaData = dataAt; }
+            const dt = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
+            if (dt !== ultimaData) { 
+                const r = resumoDia[p.data_referencia];
+                html += `<tr class="dia-header"><td colspan="8">📅 ${dt} <span class="dia-resumo">Time Total: FIFO: ${r.fifo} | GT: ${r.gt} | GP: ${r.gp} | FC: ${r.fc} | Geral: ${r.total}</span></td></tr>`; 
+                ultimaData = dt; 
+            }
 
             const uid = p.usuario_id;
             const wk = getWeek(new Date(p.data_referencia + 'T12:00:00'));
             const stats = ind[uid] || {mes:0, dias:1, semanas:{}};
-            const meta = mData.filter(m => m.usuario_id == uid && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
-            const mv = meta ? meta.valor_meta : 0;
+            const m = mData.filter(m => m.usuario_id == uid && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
+            const mv = m ? m.valor_meta : 0;
             const at = mv > 0 ? ((p.quantidade / mv) * 100).toFixed(0) : 0;
 
             html += `<tr>
-                <td>${dataAt}</td>
+                <td>${dt}</td>
                 <td><strong>${p.usuarios?.nome || uid}</strong></td>
-                <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
-                <td class="txt-bold" style="background:#fff1f2">${p.quantidade}</td>
+                <td class="txt-destaque">${p.quantidade}</td>
+                <td>${stats.semanas[wk]?.total || 0}</td>
+                <td>${stats.mes}</td>
                 <td>${(stats.semanas[wk]?.total / stats.semanas[wk]?.dias).toFixed(0)}</td>
                 <td>${(stats.mes / stats.dias).toFixed(0)}</td>
-                <td class="txt-bold">${stats.mes}</td>
                 <td><span class="badge" style="background:${at>=100?'#059669':'#dc2626'}">${at}%</span></td>
             </tr>`;
         });
 
-        tbody.innerHTML = html;
+        document.getElementById('tabela-corpo').innerHTML = html;
 
-        // Cálculos Médios das assistentes que trabalharam
-        let somaAssistentesPorDia = 0;
-        Object.keys(kpi.assistentesPorDia).forEach(d => somaAssistentesPorDia += kpi.assistentesPorDia[d].size);
-        const mediaAssistentesDia = kpi.diasUnicos.size > 0 ? (somaAssistentesPorDia / kpi.diasUnicos.size).toFixed(1) : 0;
-
-        document.getElementById('kpi-dias-trabalhados').innerText = kpi.diasUnicos.size;
-        document.getElementById('kpi-media-as-dia').innerText = mediaAssistentesDia;
-        document.getElementById('kpi-media-geral').innerText = kpi.nomesUnicos.size > 0 ? (kpi.totalG / kpi.nomesUnicos.size / (kpi.diasUnicos.size || 1)).toFixed(0) : 0;
+        // Atualização dos Cards
+        let somaAssDia = 0; Object.keys(kpi.assistPorDia).forEach(d => somaAssDia += kpi.assistPorDia[d].size);
+        document.getElementById('kpi-dias').innerText = kpi.diasU.size;
+        document.getElementById('kpi-media-as-dia').innerText = kpi.diasU.size > 0 ? (somaAssDia / kpi.diasU.size).toFixed(1) : 0;
+        document.getElementById('kpi-media-geral').innerText = kpi.nomesU.size > 0 ? (kpi.totalG / kpi.nomesU.size / (kpi.diasU.size || 1)).toFixed(0) : 0;
         document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.diasC.size || 1)).toFixed(0);
         document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.diasP.size || 1)).toFixed(0);
-        
         document.getElementById('kpi-fifo').innerText = kpi.fifo.toLocaleString();
         document.getElementById('kpi-gt').innerText = kpi.gt.toLocaleString();
         document.getElementById('kpi-gp').innerText = kpi.gp.toLocaleString();
