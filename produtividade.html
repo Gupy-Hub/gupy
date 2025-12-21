@@ -3,137 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Produtividade - Gupy</title>
+    <title>Gupy Produtividade</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e11d48; --clt: #0284c7; --pj: #7c3aed; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; --dark: #1e293b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-top h1 { margin: 0; font-size: 1.2rem; font-weight: 800; }
+        :root { --primary: #e11d48; --clt: #0284c7; --pj: #7c3aed; --bg: #f3f4f6; --text: #1f2937; --border: #e5e7eb; --nav-bg: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 70px; color: var(--text); }
 
-        /* KPIs Mensais */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
-        .stat-card { background: white; padding: 12px; border-radius: 10px; border-top: 3px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stat-label { font-size: 0.6rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .stat-value { font-size: 1.1rem; font-weight: 800; }
+        /* NAVBAR FIXA */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: var(--nav-bg); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.5px; }
+        .nav-logo span { color: var(--primary); }
+        
+        .nav-menu { display: flex; align-items: center; gap: 30px; }
+        .nav-link { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: 0.2s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { color: white; }
+        
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .user-info { font-size: 0.8rem; color: #cbd5e1; border-left: 1px solid #475569; padding-left: 20px; }
+        .user-info b { color: white; display: block; }
+
+        /* FILTRO MÊS INTEGRADO */
+        .month-picker { background: #334155; border: 1px solid #475569; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-family: inherit; }
+
+        /* LAYOUT DE CONTEÚDO */
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        /* BOTÃO IMPORTAÇÃO NA NAVBAR */
+        .btn-import-nav { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .btn-import-nav:hover { background: #be123c; }
+
+        /* KPIs MENSAL */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 15px; border-radius: 12px; border-bottom: 3px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-label { font-size: 0.65rem; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.3rem; font-weight: 800; }
 
         /* PAINEL DE DESTAQUE DIÁRIO */
-        .dia-destaque-container { background: #fff; border-radius: 12px; border: 2px solid var(--dark); margin-bottom: 25px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .dia-destaque-header { background: var(--dark); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .dia-destaque-container { background: #fff; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .dia-destaque-header { background: #f8fafc; padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .dia-destaque-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); }
-        .dia-destaque-item { background: white; padding: 15px 20px; }
-        .dia-label { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .dia-destaque-item { background: white; padding: 20px; }
+        .dia-label { font-size: 0.6rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .dia-value { font-size: 1.4rem; font-weight: 800; display: block; }
-        .val-clt { color: var(--clt); }
-        .val-pj { color: var(--pj); }
-        .val-total { color: var(--primary); }
 
-        .cat-dia-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: #f8fafc; border-top: 1px solid var(--border); }
-        .cat-dia-item { padding: 10px 20px; border-right: 1px solid var(--border); }
-        .cat-dia-item:last-child { border-right: none; }
+        /* HISTÓRICO CARDS */
+        .history-section { margin-bottom: 30px; }
+        .history-grid { display: flex; gap: 15px; overflow-x: auto; padding: 5px 0 15px 0; }
+        .history-card { min-width: 140px; background: white; border: 1px solid var(--border); padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .history-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .history-card span { font-size: 0.75rem; font-weight: 700; color: #4b5563; }
 
-        /* Estilo das Tabelas */
-        .section-title { font-size: 0.9rem; font-weight: 800; margin-bottom: 12px; color: var(--dark); }
-        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th { background: #f8fafc; padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-
-        /* DIVIDER COM RESUMO EMBUTIDO */
-        .dia-divider { background: #475569 !important; color: white; cursor: pointer; transition: 0.2s; }
-        .dia-divider:hover { background: var(--dark) !important; }
-        .dia-divider-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
-        .resumo-compacto { font-size: 0.68rem; font-weight: 400; color: #e2e8f0; display: flex; gap: 12px; }
-        .resumo-compacto b { color: #fff; }
-
-        .sub-header-row { background: #f1f5f9; font-weight: bold; color: #475569; font-size: 0.7rem; }
-        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .history-card { background: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .history-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        /* TABELA */
+        .table-card { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f9fafb; padding: 12px 15px; text-align: left; font-weight: 700; color: #4b5563; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 15px; border-bottom: 1px solid #f3f4f6; }
+        .dia-divider { background: #374151 !important; color: white; cursor: pointer; }
+        .resumo-compacto { font-size: 0.7rem; opacity: 0.8; font-weight: 400; }
+        .resumo-compacto b { color: white; margin: 0 4px; }
+        
+        /* MODAIS */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-content { background: var(--bg); margin: 2% auto; padding: 25px; border-radius: 16px; width: 92%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         .badge { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; color: white; }
-        .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; background: var(--primary); color: white; }
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-        .modal-content { background: var(--bg); margin: 2% auto; padding: 20px; border-radius: 15px; width: 95%; max-height: 90vh; overflow-y: auto; }
-        .close { font-size: 28px; cursor: pointer; float: right; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="header-top">
-    <h1>Dashboard Gupy Produtividade</h1>
-    <div style="display:flex; gap:10px;">
-        <input type="month" id="filtro-mes" onchange="carregarDados()">
-        <button class="btn" style="background:#64748b;" onclick="window.location.href='gestao.html'">⚙️ Gestão</button>
+<nav class="navbar">
+    <div class="nav-logo">📊 GUPY <span>PROD</span></div>
+    
+    <div class="nav-menu">
+        <a class="nav-link active">Dashboard</a>
+        <a class="nav-link" onclick="window.location.href='gestao.html'">Gestão</a>
+        <input type="month" id="filtro-mes" class="month-picker" onchange="carregarDados()">
     </div>
-</div>
 
-<div class="stats-grid">
-    <div class="stat-card" style="border-top-color:#f59e0b;"><div class="stat-label">Dias Trabalhados (Mês)</div><div class="stat-value" id="kpi-dias">0</div></div>
-    <div class="stat-card" style="border-top-color:#0ea5e9;"><div class="stat-label">Assistente por dia</div><div class="stat-value" id="kpi-media-as-dia">0</div></div>
-    <div class="stat-card" style="border-top-color:#10b981;"><div class="stat-label">Total Validado (Mês)</div><div class="stat-value" id="kpi-total-mes-time">0</div></div>
-    <div class="stat-card" style="border-top-color:#10b981;"><div class="stat-label">Média Assistente (Mês)</div><div class="stat-value" id="kpi-media-as-mes">0</div></div>
-</div>
-
-<div class="card" style="margin-bottom:15px; background:white; padding:15px; border-radius:10px; border:1px solid var(--border);">
-    <input type="file" id="excel-files" accept=".xlsx" multiple>
-    <button class="btn" onclick="importarArquivos()">📥 Importar Dados</button>
-</div>
-
-<div class="dia-destaque-container" id="painel-dia" style="display:none;">
-    <div class="dia-destaque-header">
-        <span style="font-weight:800; letter-spacing:1px;">📌 PERFORMANCE DO TIME - DIA <span id="label-dia-foco">00/00/0000</span></span>
-        <span id="label-headcount" style="font-size:0.8rem; opacity:0.9;">Assistentes ativos: 0</span>
-    </div>
-    <div class="dia-destaque-grid">
-        <div class="dia-destaque-item">
-            <span class="dia-label">Total Validação (Time)</span>
-            <span class="dia-value val-total" id="d-total-time">0</span>
-        </div>
-        <div class="dia-destaque-item">
-            <span class="dia-label">Média do Dia (Time)</span>
-            <span class="dia-value" id="d-media-time">0</span>
-        </div>
-        <div class="dia-destaque-item">
-            <span class="dia-label">Total Validação (CLT)</span>
-            <span class="dia-value val-clt" id="d-total-clt">0</span>
-        </div>
-        <div class="dia-destaque-item">
-            <span class="dia-label">Média Validação (CLT)</span>
-            <span class="dia-value" id="d-media-clt">0</span>
-        </div>
-        <div class="dia-destaque-item">
-            <span class="dia-label">Total Validação (PJ)</span>
-            <span class="dia-value val-pj" id="d-total-pj">0</span>
-        </div>
-        <div class="dia-destaque-item">
-            <span class="dia-label">Média Validação (PJ)</span>
-            <span class="dia-value" id="d-media-pj">0</span>
+    <div class="nav-right">
+        <button class="btn-import-nav" onclick="document.getElementById('excel-files').click()">📥 Importar</button>
+        <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
+        <div class="user-info">
+            Logado como: <b id="user-display">Patrícia</b>
         </div>
     </div>
-    <div class="cat-dia-grid">
-        <div class="cat-dia-item"><span class="dia-label">Total FIFO</span><span class="dia-value" style="font-size:1.1rem;" id="d-fifo">0</span></div>
-        <div class="cat-dia-item"><span class="dia-label">Gradual Total</span><span class="dia-value" style="font-size:1.1rem;" id="d-gt">0</span></div>
-        <div class="cat-dia-item"><span class="dia-label">Gradual Parcial</span><span class="dia-value" style="font-size:1.1rem;" id="d-gp">0</span></div>
-        <div class="cat-dia-item"><span class="dia-label">Perfil FC</span><span class="dia-value" style="font-size:1.1rem;" id="d-fc">0</span></div>
+</nav>
+
+<div class="container">
+    
+    <div class="stats-grid">
+        <div class="stat-card" style="border-color:#f59e0b;"><div class="stat-label">Dias Trabalhados</div><div class="stat-value" id="kpi-dias">0</div></div>
+        <div class="stat-card" style="border-color:#0ea5e9;"><div class="stat-label">Assistentes/Dia</div><div class="stat-value" id="kpi-media-as-dia">0</div></div>
+        <div class="stat-card" style="border-color:#10b981;"><div class="stat-label">Total Mês</div><div class="stat-value" id="kpi-total-mes-time">0</div></div>
+        <div class="stat-card" style="border-color:#10b981;"><div class="stat-label">Média/Assistente</div><div class="stat-value" id="kpi-media-as-mes">0</div></div>
     </div>
-</div>
 
-<div class="section-title">📂 Histórico e Semanas</div>
-<div class="history-grid" id="history-container"></div>
+    <div class="dia-destaque-container" id="painel-dia" style="display:none;">
+        <div class="dia-destaque-header">
+            <span style="font-weight:800; color: #1e293b;">📌 FOCO DO DIA: <span id="label-dia-foco" style="color: var(--primary);">00/00/0000</span></span>
+            <span id="label-headcount" style="font-size:0.75rem; font-weight: 600; color: #64748b;">Assistentes: 0</span>
+        </div>
+        <div class="dia-destaque-grid">
+            <div class="dia-destaque-item"><span class="dia-label">Total Time</span><span class="dia-value" id="d-total-time" style="color:var(--primary)">0</span></div>
+            <div class="dia-destaque-item"><span class="dia-label">Média Time</span><span class="dia-value" id="d-media-time">0</span></div>
+            <div class="dia-destaque-item"><span class="dia-label">Total CLT</span><span class="dia-value" id="d-total-clt" style="color:var(--clt)">0</span></div>
+            <div class="dia-destaque-item"><span class="dia-label">Média CLT</span><span class="dia-value" id="d-media-clt">0</span></div>
+            <div class="dia-destaque-item"><span class="dia-label">Total PJ</span><span class="dia-value" id="d-total-pj" style="color:var(--pj)">0</span></div>
+            <div class="dia-destaque-item"><span class="dia-label">Média PJ</span><span class="dia-value" id="d-media-pj">0</span></div>
+        </div>
+        <div class="dia-destaque-grid" style="border-top: 1px solid var(--border); background: #f9fafb;">
+            <div class="dia-destaque-item" style="padding: 12px 20px;"><span class="dia-label">FIFO</span><span class="dia-value" id="d-fifo" style="font-size: 1.1rem;">0</span></div>
+            <div class="dia-destaque-item" style="padding: 12px 20px;"><span class="dia-label">GRADUAL T.</span><span class="dia-value" id="d-gt" style="font-size: 1.1rem;">0</span></div>
+            <div class="dia-destaque-item" style="padding: 12px 20px;"><span class="dia-label">GRADUAL P.</span><span class="dia-value" id="d-gp" style="font-size: 1.1rem;">0</span></div>
+            <div class="dia-destaque-item" style="padding: 12px 20px;"><span class="dia-label">PERFIL FC</span><span class="dia-value" id="d-fc" style="font-size: 1.1rem;">0</span></div>
+        </div>
+    </div>
 
-<div class="section-title">👤 Detalhamento Individual</div>
-<div class="table-container">
-    <table id="tabela-hoje"></table>
+    <div class="history-section">
+        <h3 style="font-size: 0.9rem; margin-bottom: 10px; font-weight: 800;">📂 HISTÓRICO</h3>
+        <div class="history-grid" id="history-container"></div>
+    </div>
+
+    <h3 style="font-size: 0.9rem; margin-bottom: 10px; font-weight: 800;">👤 DETALHAMENTO POR ASSISTENTE</h3>
+    <div class="table-card">
+        <table id="tabela-hoje"></table>
+    </div>
 </div>
 
 <div id="modalHist" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="fecharModal()">&times;</span>
-        <h2 id="modal-titulo">Relatório</h2>
-        <div class="table-container"><table id="tabela-modal"></table></div>
+        <div class="modal-header">
+            <h2 id="modal-titulo" style="margin:0; font-size:1.2rem;">Relatório</h2>
+            <span style="font-size:24px; cursor:pointer;" onclick="fecharModal()">&times;</span>
+        </div>
+        <div class="table-card"><table id="tabela-modal"></table></div>
     </div>
 </div>
 
@@ -142,6 +149,10 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     let dadosGlobais = [], metasGlobais = [];
+
+    // Recuperar nome do usuário
+    const sessao = JSON.parse(localStorage.getItem('usuario'));
+    if(sessao) document.getElementById('user-display').innerText = sessao.nome;
 
     document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
@@ -152,8 +163,8 @@
             if(!/^\d{8}$/.test(fn)) continue;
             const dr = `${fn.substring(4,8)}-${fn.substring(2,4)}-${fn.substring(0,2)}`;
             const buffer = await file.arrayBuffer();
-            const workbook = XLSX.read(buffer, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            const wb = XLSX.read(buffer, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             const ins = json.map(r => ({
                 usuario_id: r.id_assistente,
                 fifo: Number(r.documentos_validados_fifo || 0), gradual_total: Number(r.documentos_validados_gradual_total || 0),
@@ -194,21 +205,18 @@
         const dia = dadosGlobais.filter(p => p.data_referencia === dataFoco && p.usuarios?.funcao === 'Assistente');
         const clt = dia.filter(p => (p.usuarios.contrato || '').includes('CLT'));
         const pj = dia.filter(p => !(p.usuarios.contrato || '').includes('CLT'));
-
         const somar = (arr) => arr.reduce((a, b) => a + b.quantidade, 0);
         const media = (arr) => arr.length > 0 ? (somar(arr) / new Set(arr.map(x=>x.usuarios.nome)).size).toFixed(0) : 0;
 
         document.getElementById('painel-dia').style.display = 'block';
         document.getElementById('label-dia-foco').innerText = new Date(dataFoco + 'T12:00:00').toLocaleDateString('pt-BR');
-        document.getElementById('label-headcount').innerText = `Assistentes ativos: ${new Set(dia.map(x=>x.usuarios.nome)).size}`;
-        
+        document.getElementById('label-headcount').innerText = `Assistentes: ${new Set(dia.map(x=>x.usuarios.nome)).size}`;
         document.getElementById('d-total-time').innerText = somar(dia).toLocaleString();
         document.getElementById('d-media-time').innerText = media(dia);
         document.getElementById('d-total-clt').innerText = somar(clt).toLocaleString();
         document.getElementById('d-media-clt').innerText = media(clt);
         document.getElementById('d-total-pj').innerText = somar(pj).toLocaleString();
         document.getElementById('d-media-pj').innerText = media(pj);
-        
         document.getElementById('d-fifo').innerText = dia.reduce((a,b)=>a+b.fifo, 0).toLocaleString();
         document.getElementById('d-gt').innerText = dia.reduce((a,b)=>a+b.gradual_total, 0).toLocaleString();
         document.getElementById('d-gp').innerText = dia.reduce((a,b)=>a+b.gradual_parcial, 0).toLocaleString();
@@ -222,40 +230,24 @@
             if(!stats[uid]) stats[uid] = { m:0, d:0, s:{} };
             if(!stats[uid].s[wk]) stats[uid].s[wk] = { t:0, d:0 };
             if(!resumoDia[dr]) resumoDia[dr] = { f:0, gt:0, gp:0, fc:0, t:0, clt:0, pj:0, cC:0, cP:0 };
-            
             stats[uid].m += p.quantidade; stats[uid].d++;
             stats[uid].s[wk].t += p.quantidade; stats[uid].s[wk].d++;
-            
             if(p.usuarios?.funcao === 'Assistente') {
                 resumoDia[dr].f += p.fifo; resumoDia[dr].gt += p.gradual_total; resumoDia[dr].gp += p.gradual_parcial; resumoDia[dr].fc += p.perfil_fc; resumoDia[dr].t += p.quantidade;
                 if((p.usuarios.contrato || '').includes('CLT')) { resumoDia[dr].clt += p.quantidade; resumoDia[dr].cC++; }
                 else { resumoDia[dr].pj += p.quantidade; resumoDia[dr].cP++; }
             }
-
             p.tS = stats[uid].s[wk].t; p.mS = (p.tS / stats[uid].s[wk].d).toFixed(0);
             p.tM = stats[uid].m; p.mM = (p.tM / stats[uid].d).toFixed(0);
         });
 
         let html = ''; let lastD = '';
-        const cabecalho = `<tr class="sub-header-row"><th>Assistente</th><th>Total Dia</th><th>Acum. Semana</th><th>Acum. Mês</th><th>Média Semana</th><th>Média Mês</th><th>Status</th></tr>`;
-        
+        const cabecalho = `<tr style="background:#f9fafb"><th>Assistente</th><th>Hoje</th><th>Semana</th><th>Mês</th><th>Média Sem.</th><th>Média Mês</th><th>Meta</th></tr>`;
         dadosGlobais.filter(p => datas.includes(p.data_referencia)).sort((a,b) => b.data_referencia.localeCompare(a.data_referencia) || a.usuarios.nome.localeCompare(b.usuarios.nome)).forEach(p => {
             const dt = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
             if(dt !== lastD) { 
                 const r = resumoDia[p.data_referencia];
-                html += `<tr class="dia-divider" onclick="selecionarDia('${p.data_referencia}')">
-                    <td colspan="7">
-                        <div class="dia-divider-content">
-                            <span>📅 ${dt}</span>
-                            <div class="resumo-compacto">
-                                <span>TOTAL: <b>${r.t}</b></span>
-                                <span>CLT: <b>${r.clt}</b> (M: ${(r.clt/(r.cC||1)).toFixed(0)})</span>
-                                <span>PJ: <b>${r.pj}</b> (M: ${(r.pj/(r.cP||1)).toFixed(0)})</span>
-                                <span>FIFO: <b>${r.f}</b> | GT: <b>${r.gt}</b></span>
-                            </div>
-                        </div>
-                    </td>
-                </tr>` + cabecalho; 
+                html += `<tr class="dia-divider" onclick="selecionarDia('${p.data_referencia}')"><td colspan="7"><div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>📅 ${dt}</span><div class="resumo-compacto">Σ: <b>${r.t}</b> | CLT: <b>${r.clt}</b> | PJ: <b>${r.pj}</b> | FIFO: <b>${r.f}</b></div></div></td></tr>` + cabecalho; 
                 lastD = dt; 
             }
             const ating = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
@@ -281,15 +273,15 @@
 
     function renderizarCardsSemanais() {
         const container = document.getElementById('history-container');
-        container.innerHTML = `<div class="history-card" onclick="abrirModal('mes')">📊<span>Mês Completo</span></div>`;
+        container.innerHTML = `<div class="history-card" onclick="abrirModal('mes')">📊<br><span>MÊS INTEIRO</span></div>`;
         const semanas = [...new Set(dadosGlobais.map(p => getWeek(p.data_referencia)))].sort((a,b) => a-b);
-        semanas.forEach((s, i) => container.innerHTML += `<div class="history-card" onclick="abrirModal('semana', ${s})">📅<span>Semana ${i+1}</span></div>`);
+        semanas.forEach((s, i) => container.innerHTML += `<div class="history-card" onclick="abrirModal('semana', ${s})">📅<br><span>SEMANA ${i+1}</span></div>`);
     }
 
     function abrirModal(tipo, valor) {
         const datas = tipo === 'mes' ? [...new Set(dadosGlobais.map(p => p.data_referencia))] : [...new Set(dadosGlobais.filter(p => getWeek(p.data_referencia) === valor).map(p => p.data_referencia))];
         document.getElementById('modal-titulo').innerText = tipo === 'mes' ? "Relatório Mensal" : "Relatório Semanal";
-        renderizarTabela(document.getElementById('corpo-modal'), datas);
+        renderizarTabela(document.getElementById('tabela-modal'), datas);
         document.getElementById('modalHist').style.display = "block";
     }
 
