@@ -13,8 +13,8 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .header-top h1 { margin: 0; font-size: 1.2rem; font-weight: 800; }
 
-        /* KPIs Fixos */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        /* KPIs Mensais e Categorias */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px; }
         .stat-card { background: white; padding: 12px; border-radius: 10px; border-top: 4px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-label { font-size: 0.6rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
         .stat-value { font-size: 1.1rem; font-weight: 800; }
@@ -25,14 +25,14 @@
         .history-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(225, 29, 72, 0.1); }
         .history-card span { display: block; font-size: 0.8rem; font-weight: 700; margin-top: 5px; }
 
-        /* Estilo de Tabelas */
+        /* Tabelas */
         .section-title { font-size: 0.9rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1100px; }
-        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #475569; }
+        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #475569; }
         td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-        tbody tr:nth-child(even) { background: #fbfcfe; }
-        .dia-divider { background: var(--dark) !important; color: white; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
+        .dia-divider { background: var(--dark) !important; color: white; font-weight: bold; font-size: 0.72rem; text-transform: uppercase; padding: 10px 15px; }
+        .resumo-cat { font-weight: 400; color: #cbd5e1; margin-left: 15px; font-size: 0.68rem; }
         
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; color: white; }
         .txt-destaque { font-weight: 800; color: var(--primary); }
@@ -65,16 +65,22 @@
     <div class="stat-card" style="border-top-color:#10b981;"><div class="stat-label">Média Assistente (Mês)</div><div class="stat-value" id="kpi-media-as-mes">0</div></div>
 </div>
 
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">FIFO (Mês)</div><div class="stat-value" id="kpi-fifo">0</div></div>
+    <div class="stat-card"><div class="stat-label">Gradual Total (Mês)</div><div class="stat-value" id="kpi-gt">0</div></div>
+    <div class="stat-card"><div class="stat-label">Gradual Parcial (Mês)</div><div class="stat-value" id="kpi-gp">0</div></div>
+    <div class="stat-card"><div class="stat-label">Perfil FC (Mês)</div><div class="stat-value" id="kpi-fc">0</div></div>
+</div>
+
 <div class="section-title">📂 Relatórios Consolidados</div>
 <div class="history-grid" id="history-container">
     <div class="history-card" onclick="abrirModal('mes')"><span>📊 Mês Completo</span></div>
 </div>
 
-<div class="section-title">🕒 Último Dia Importado: <span id="data-label" style="color:var(--primary); margin-left:8px;">-</span></div>
+<div class="section-title">🕒 Último Dia: <span id="data-label" style="color:var(--primary); margin-left:8px;">-</span></div>
 <div class="card" style="margin-bottom:15px; background:white; padding:15px; border-radius:10px; border:1px solid var(--border);">
-    <label style="font-size:0.75rem; font-weight:700;">Subir Planilhas:</label>
     <input type="file" id="excel-files" accept=".xlsx" multiple>
-    <button class="btn btn-primary" onclick="importarArquivos()">📥 Importar</button>
+    <button class="btn btn-primary" onclick="importarArquivos()">📥 Importar Dados</button>
 </div>
 
 <div class="table-container">
@@ -97,7 +103,7 @@
 <div id="modalHist" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 id="modal-titulo" style="margin:0; font-size:1.2rem;">Relatório</h2>
+            <h2 id="modal-titulo" style="margin:0;">Relatório</h2>
             <span class="close" onclick="fecharModal()">&times;</span>
         </div>
         <div class="table-container">
@@ -153,8 +159,7 @@
     function getWeek(d) {
         let date = new Date(d + 'T12:00:00');
         date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
-        var yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
-        return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+        return Math.ceil((((date - new Date(Date.UTC(date.getUTCFullYear(),0,1))) / 86400000) + 1)/7);
     }
 
     async function carregarDados() {
@@ -173,20 +178,24 @@
     }
 
     function renderizarKPIs() {
-        let kpi = { tG:0, nU:new Set(), dU:new Set(), tC:0, dC:new Set(), tP:0, dP:new Set(), assDia: {} };
+        let kpi = { tG:0, nU:new Set(), dU:new Set(), tC:0, dC:new Set(), tP:0, dP:new Set(), assDia: {}, f:0, gt:0, gp:0, fc:0 };
         dadosGlobais.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
             kpi.tG += p.quantidade; kpi.nU.add(p.usuarios.nome); kpi.dU.add(p.data_referencia);
+            kpi.f += p.fifo; kpi.gt += p.gradual_total; kpi.gp += p.gradual_parcial; kpi.fc += p.perfil_fc;
             if(!kpi.assDia[p.data_referencia]) kpi.assDia[p.data_referencia] = new Set();
             kpi.assDia[p.data_referencia].add(p.usuarios.nome);
             if((p.usuarios.contrato || '').includes('CLT')) { kpi.tC += p.quantidade; kpi.dC.add(p.data_referencia); } 
             else { kpi.tP += p.quantidade; kpi.dP.add(p.data_referencia); }
         });
-        let sumAss = 0; Object.keys(kpi.assDia).forEach(d => sumAss += kpi.assDia[d].size);
         document.getElementById('kpi-dias').innerText = kpi.dU.size;
-        document.getElementById('kpi-media-as-dia').innerText = (sumAss / (kpi.dU.size || 1)).toFixed(1);
+        document.getElementById('kpi-media-as-dia').innerText = (Object.keys(kpi.assDia).reduce((a,b)=>a+kpi.assDia[b].size,0) / (kpi.dU.size || 1)).toFixed(1);
         document.getElementById('kpi-media-clt').innerText = (kpi.tC / (kpi.dC.size || 1)).toFixed(0);
         document.getElementById('kpi-media-pj').innerText = (kpi.tP / (kpi.dP.size || 1)).toFixed(0);
         document.getElementById('kpi-media-as-mes').innerText = (kpi.tG / (kpi.nU.size || 1)).toFixed(0);
+        document.getElementById('kpi-fifo').innerText = kpi.f.toLocaleString();
+        document.getElementById('kpi-gt').innerText = kpi.gt.toLocaleString();
+        document.getElementById('kpi-gp').innerText = kpi.gp.toLocaleString();
+        document.getElementById('kpi-fc').innerText = kpi.fc.toLocaleString();
     }
 
     function renderizarCardsSemanais() {
@@ -197,61 +206,47 @@
     }
 
     function renderizarTabela(target, datasFiltradas) {
-        // Pré-calcula estatísticas acumuladas
-        let stats = {};
-        // Precisamos processar do mais antigo para o mais novo para o acumulado fazer sentido
+        let stats = {}; let resumoDia = {};
         [...dadosGlobais].reverse().forEach(p => {
-            const uid = p.usuario_id;
-            const wk = getWeek(p.data_referencia);
+            const uid = p.usuario_id; const wk = getWeek(p.data_referencia); const dr = p.data_referencia;
             if(!stats[uid]) stats[uid] = { mes:0, dias:0, semanas:{} };
             if(!stats[uid].semanas[wk]) stats[uid].semanas[wk] = { total:0, dias:0 };
+            if(!resumoDia[dr]) resumoDia[dr] = { f:0, gt:0, gp:0, fc:0, t:0 };
             
             stats[uid].mes += p.quantidade; stats[uid].dias++;
             stats[uid].semanas[wk].total += p.quantidade; stats[uid].semanas[wk].dias++;
+            resumoDia[dr].f += p.fifo; resumoDia[dr].gt += p.gradual_total; resumoDia[dr].gp += p.gradual_parcial; resumoDia[dr].fc += p.perfil_fc; resumoDia[dr].t += p.quantidade;
 
-            // Guarda o estado do acumulado para esta data específica
-            p.totalSemana = stats[uid].semanas[wk].total;
-            p.mediaSemana = (stats[uid].semanas[wk].total / stats[uid].semanas[wk].dias).toFixed(0);
-            p.totalMes = stats[uid].mes;
-            p.mediaMes = (stats[uid].mes / stats[uid].dias).toFixed(0);
+            p.tS = stats[uid].semanas[wk].total; p.mS = (stats[uid].semanas[wk].total / stats[uid].semanas[wk].dias).toFixed(0);
+            p.tM = stats[uid].mes; p.mM = (stats[uid].mes / stats[uid].dias).toFixed(0);
         });
 
         let html = ''; let lastD = '';
-        const exibicao = dadosGlobais.filter(p => datasFiltradas.includes(p.data_referencia))
-                        .sort((a,b) => b.data_referencia.localeCompare(a.data_referencia) || a.usuarios.nome.localeCompare(b.usuarios.nome));
+        const exibicao = dadosGlobais.filter(p => datasFiltradas.includes(p.data_referencia)).sort((a,b) => b.data_referencia.localeCompare(a.data_referencia) || a.usuarios.nome.localeCompare(b.usuarios.nome));
 
         exibicao.forEach(p => {
             const dt = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
-            if(dt !== lastD && datasFiltradas.length > 1) { 
-                html += `<tr class="dia-divider"><td colspan="7">📅 Produção de ${dt}</td></tr>`; 
+            if(dt !== lastD) { 
+                const r = resumoDia[p.data_referencia];
+                html += `<tr class="dia-divider"><td colspan="7">📅 ${dt} <span class="resumo-cat">TIME: FIFO:${r.f} | GT:${r.gt} | GP:${r.gp} | FC:${r.fc} | Σ:${r.t}</span></td></tr>`; 
                 lastD = dt; 
             }
-            const m = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
-            const ating = m ? ((p.quantidade / m.valor_meta)*100).toFixed(0) : 0;
-            
-            html += `<tr>
-                <td><strong>${p.usuarios?.nome}</strong></td>
-                <td class="txt-destaque">${p.quantidade}</td>
-                <td>${p.totalSemana}</td>
-                <td>${p.totalMes}</td>
-                <td>${p.mediaSemana}</td>
-                <td>${p.mediaMes}</td>
-                <td><span class="badge" style="background:${ating>=100?'#059669':'#dc2626'}">${ating}%</span></td>
-            </tr>`;
+            const ating = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
+            const perc = ating ? ((p.quantidade / ating.valor_meta)*100).toFixed(0) : 0;
+            html += `<tr><td><strong>${p.usuarios?.nome}</strong></td><td class="txt-destaque">${p.quantidade}</td><td>${p.tS}</td><td>${p.tM}</td><td>${p.mS}</td><td>${p.mM}</td><td><span class="badge" style="background:${perc>=100?'#059669':'#dc2626'}">${perc}%</span></td></tr>`;
         });
         target.innerHTML = html;
     }
 
     function abrirModal(tipo, valor) {
         const datas = tipo === 'mes' ? [...new Set(dadosGlobais.map(p => p.data_referencia))] : [...new Set(dadosGlobais.filter(p => getWeek(p.data_referencia) === valor).map(p => p.data_referencia))];
-        document.getElementById('modal-titulo').innerText = tipo === 'mes' ? "Relatório Mensal Completo" : "Relatório da Semana " + (valor % 10); // Simplificação de índice
+        document.getElementById('modal-titulo').innerText = tipo === 'mes' ? "Relatório Mensal Completo" : "Relatório da Semana " + (valor % 10);
         renderizarTabela(document.getElementById('corpo-modal'), datas);
         document.getElementById('modalHist').style.display = "block";
     }
 
     function fecharModal() { document.getElementById('modalHist').style.display = "none"; }
     window.onclick = (e) => { if(e.target.classList.contains('modal')) fecharModal(); }
-
     carregarDados();
 </script>
 </body>
