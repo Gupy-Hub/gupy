@@ -19,7 +19,7 @@
             --bg: #f8fafc; 
             --nav: #1e293b; 
             --border: #e2e8f0; 
-            --panel-inner: #334155; 
+            --panel-inner: #cbd5e1; /* Fundo do painel interno um pouco mais claro para o título preto destacar */
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: #1e293b; }
 
@@ -43,27 +43,31 @@
 
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* MINI PAINEL */
+        /* MINI PAINEL PADRONIZADO */
         .dynamic-panel { background: #1e293b; color: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 6px solid var(--primary); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: var(--panel-inner); padding: 15px; border-radius: 10px; }
-        .panel-column { display: flex; flex-direction: column; gap: 12px; border-right: 1px solid #475569; padding-right: 10px; }
+        
+        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: #e2e8f0; padding: 15px; border-radius: 10px; }
+        .panel-column { display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #cbd5e1; padding-right: 10px; }
         .panel-column:last-child { border-right: none; }
-        .stat-group { display: flex; justify-content: space-between; align-items: flex-end; }
         
-        /* Labels: Cinza claro para os novos, mantendo o original no Headcount conforme solicitado */
-        .label { font-size: 0.55rem; color: #cbd5e1; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
-        .label.original { color: #94a3b8; }
+        /* Padronização do alinhamento: flex-start e altura fixa para evitar desníveis */
+        .stat-group { display: flex; justify-content: space-between; align-items: flex-start; min-height: 40px; }
+        .stat-item { display: flex; flex-direction: column; gap: 2px; }
         
-        .value { font-size: 1.05rem; font-weight: 800; }
+        /* Títulos em Preto */
+        .label { font-size: 0.55rem; color: #000000; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        
+        /* Valores */
+        .value { font-size: 1.05rem; font-weight: 800; color: #1e293b; }
         .value.small-val { font-size: 0.85rem; }
 
-        .color-clt { color: var(--clt); }
-        .color-pj { color: var(--pj); }
-        .color-fifo { color: var(--fifo); }
-        .color-gt { color: var(--gt); }
-        .color-gp { color: var(--gp); }
-        .color-fc { color: var(--fc); }
+        .color-clt { color: var(--clt) !important; }
+        .color-pj { color: var(--pj) !important; }
+        .color-fifo { color: var(--fifo) !important; }
+        .color-gt { color: var(--gt) !important; }
+        .color-gp { color: var(--gp) !important; }
+        .color-fc { color: var(--fc) !important; }
 
         /* TABELA */
         .table-wrap { background: white; border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -127,44 +131,41 @@
         <div class="panel-grid">
             <div class="panel-column">
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total Geral</span><span class="value" id="p-total">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div>
+                    <div class="stat-item"><span class="label">Total Geral</span><span class="value" id="p-total">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div>
                 </div>
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column">
-                        <span class="label original">Assistentes (Headcount)</span>
-                        <span class="value" id="p-headcount">0</span>
-                    </div>
+                    <div class="stat-item"><span class="label">Headcount Assistentes</span><span class="value" id="p-headcount">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total CLT</span><span class="value color-clt" id="p-clt">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Média CLT</span><span class="value small-val color-clt" id="p-clt-media">0</span></div>
+                    <div class="stat-item"><span class="label">Total CLT</span><span class="value color-clt" id="p-clt">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Média CLT</span><span class="value small-val color-clt" id="p-clt-media">0</span></div>
                 </div>
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total PJ</span><span class="value color-pj" id="p-pj">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Média PJ</span><span class="value small-val color-pj" id="p-pj-media">0</span></div>
-                </div>
-            </div>
-            <div class="panel-column">
-                <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total FIFO</span><span class="value color-fifo" id="p-fifo">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Méd. FIFO</span><span class="value small-val color-fifo" id="p-fifo-media">0</span></div>
-                </div>
-                <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total GT</span><span class="value color-gt" id="p-gt">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Méd. GT</span><span class="value small-val color-gt" id="p-gt-media">0</span></div>
+                    <div class="stat-item"><span class="label">Total PJ</span><span class="value color-pj" id="p-pj">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Média PJ</span><span class="value small-val color-pj" id="p-pj-media">0</span></div>
                 </div>
             </div>
             <div class="panel-column">
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total GP</span><span class="value color-gp" id="p-gp">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Méd. GP</span><span class="value small-val color-gp" id="p-gp-media">0</span></div>
+                    <div class="stat-item"><span class="label">Total FIFO</span><span class="value color-fifo" id="p-fifo">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Méd. FIFO</span><span class="value small-val color-fifo" id="p-fifo-media">0</span></div>
                 </div>
                 <div class="stat-group">
-                    <div style="display:flex;flex-direction:column"><span class="label">Total FC</span><span class="value color-fc" id="p-fc">0</span></div>
-                    <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Méd. FC</span><span class="value small-val color-fc" id="p-fc-media">0</span></div>
+                    <div class="stat-item"><span class="label">Total GT</span><span class="value color-gt" id="p-gt">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Méd. GT</span><span class="value small-val color-gt" id="p-gt-media">0</span></div>
+                </div>
+            </div>
+            <div class="panel-column">
+                <div class="stat-group">
+                    <div class="stat-item"><span class="label">Total GP</span><span class="value color-gp" id="p-gp">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Méd. GP</span><span class="value small-val color-gp" id="p-gp-media">0</span></div>
+                </div>
+                <div class="stat-group">
+                    <div class="stat-item"><span class="label">Total FC</span><span class="value color-fc" id="p-fc">0</span></div>
+                    <div class="stat-item" style="text-align:right"><span class="label">Méd. FC</span><span class="value small-val color-fc" id="p-fc-media">0</span></div>
                 </div>
             </div>
         </div>
@@ -275,7 +276,6 @@
             titulo = `Consolidado Mensal`;
         }
         
-        // ORDENAÇÃO A-Z: Por nome do usuário ou por ID se não tiver nome
         filtrados.sort((a, b) => {
             const nomeA = (a.usuarios?.nome || a.usuario_id || "").toString().toLowerCase();
             const nomeB = (b.usuarios?.nome || b.usuario_id || "").toString().toLowerCase();
