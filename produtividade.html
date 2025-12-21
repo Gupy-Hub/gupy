@@ -17,10 +17,10 @@
         .brand .small { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; display: block; }
         .brand .big { font-size: 1.1rem; font-weight: 800; color: white; }
         
+        /* FERRAMENTAS SIMPLIFICADAS */
         .nav-tools { display: flex; align-items: center; gap: 10px; background: #334155; padding: 6px 12px; border-radius: 10px; border: 1px solid #475569; }
-        .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.8rem; font-weight: 600; outline: none; cursor: pointer; }
-        .nav-tools option { background: var(--nav); }
-
+        .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 600; outline: none; cursor: pointer; }
+        
         .btn-import { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
         
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
@@ -33,16 +33,16 @@
         .stat-box .value { font-size: 1.2rem; font-weight: 800; display: block; margin-top: 4px; }
 
         /* TABELA */
-        .table-wrap { background: white; border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1000px; }
+        .table-wrap { background: white; border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1100px; }
         th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); color: #64748b; }
         td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
-        .divider-row { background: #f1f5f9 !important; font-weight: 800; font-size: 0.7rem; color: #475569; }
+        .divider-row { background: #f1f5f9 !important; font-weight: 800; font-size: 0.75rem; color: #475569; }
         
         .hidden { display: none !important; }
         
         /* AVISO DE IMPORTAÇÃO */
-        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; border-top: 4px solid var(--primary); display: none; min-width: 250px; }
+        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; border-top: 4px solid var(--primary); display: none; min-width: 280px; }
     </style>
 </head>
 <body>
@@ -55,27 +55,29 @@
         </div>
         <div class="nav-tools">
             <select id="view-selector" onchange="ajustarSeletores()">
-                <option value="dia">🔍 Análise Diária</option>
+                <option value="dia">🔍 Análise Detalhada (Dia)</option>
                 <option value="semana">📅 Visão Semanal</option>
                 <option value="mes">📊 Consolidado Mensal</option>
             </select>
             <div style="width:1px; height:20px; background:#475569;"></div>
-            <input type="month" id="filtro-mes" onchange="carregarDados()">
-            <input type="date" id="select-dia" onchange="alternarVisao()">
+            <input type="date" id="select-dia" onchange="carregarDados()">
             <select id="select-semana" class="hidden" onchange="alternarVisao()"></select>
         </div>
     </div>
-    <div class="nav-right">
+    <div class="nav-right" style="display: flex; align-items: center; gap: 20px;">
         <button class="btn-import" onclick="document.getElementById('excel-files').click()">📥 Importar Planilhas</button>
         <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
-        <span id="user-display" style="margin-left:15px; font-weight:700; font-size:0.8rem; color:#94a3b8"></span>
+        <div style="text-align: right; border-left: 1px solid #334155; padding-left: 20px;">
+            <span id="user-display" style="font-weight:700; font-size:0.85rem; color:white; display:block;"></span>
+            <span style="color: #f87171; font-size: 0.7rem; cursor: pointer; font-weight: 700;" onclick="logout()">Sair</span>
+        </div>
     </div>
 </nav>
 
 <div class="container">
     <div id="panel-contexto" class="dynamic-panel">
         <div class="panel-header">
-            <h2 id="panel-titulo" style="margin:0; font-size:1.1rem;">Carregando...</h2>
+            <h2 id="panel-titulo" style="margin:0; font-size:1.1rem;">Aguardando seleção...</h2>
             <span id="panel-info-extra" style="font-size:0.75rem; font-weight:600; background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:20px;">-</span>
         </div>
         <div class="panel-grid" id="panel-stats">
@@ -95,9 +97,9 @@
             <thead>
                 <tr>
                     <th>Assistente</th>
-                    <th style="text-align:center">Produção</th>
+                    <th style="text-align:center; color:var(--primary)">Produção</th>
                     <th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th>
-                    <th>Semana</th><th>Mês</th><th>Atingimento</th>
+                    <th>Acum. Semana</th><th>Acum. Mês</th><th>Média Semana</th><th>Média Mês</th><th>Ating.</th>
                 </tr>
             </thead>
             <tbody id="tabela-corpo"></tbody>
@@ -106,9 +108,9 @@
 </div>
 
 <div id="import-log">
-    <h4 style="margin:0 0 10px 0; font-size:0.9rem;">📢 Relatório de Importação</h4>
+    <h4 style="margin:0 0 10px 0; font-size:0.9rem; color:var(--nav)">📢 Resultado da Importação</h4>
     <div id="log-content" style="font-size:0.75rem; color:#475569; line-height:1.4"></div>
-    <button onclick="this.parentElement.style.display='none'" style="margin-top:10px; width:100%; padding:5px; border:none; background:#eee; cursor:pointer; border-radius:5px;">Fechar</button>
+    <button onclick="this.parentElement.style.display='none'" style="margin-top:12px; width:100%; padding:8px; border:none; background:var(--nav); color:white; cursor:pointer; border-radius:6px; font-weight:700;">Entendido</button>
 </div>
 
 <script>
@@ -120,14 +122,16 @@
     const sessao = JSON.parse(localStorage.getItem('usuario'));
     if(!sessao) window.location.href = 'index.html';
     document.getElementById('user-display').innerText = sessao.nome;
-    document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
+    
+    // Define data padrão como hoje
     document.getElementById('select-dia').value = new Date().toISOString().substring(0,10);
+
+    function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
 
     function ajustarSeletores() {
         const v = document.getElementById('view-selector').value;
         document.getElementById('select-dia').classList.toggle('hidden', v !== 'dia');
         document.getElementById('select-semana').classList.toggle('hidden', v !== 'semana');
-        
         if(v === 'semana') gerarOpcoesSemana();
         alternarVisao();
     }
@@ -135,7 +139,6 @@
     function gerarOpcoesSemana() {
         const sel = document.getElementById('select-semana');
         sel.innerHTML = '';
-        // Gerar 5 semanas padrão
         for(let i=1; i<=5; i++) {
             const opt = document.createElement('option');
             opt.value = i; opt.text = `Semana ${i}`;
@@ -144,16 +147,19 @@
     }
 
     async function carregarDados() {
-        const mesStr = document.getElementById('filtro-mes').value;
+        const dataRef = document.getElementById('select-dia').value;
+        const mesStr = dataRef.substring(0,7); // Extrai AAAA-MM
+        
         const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mesStr}-01`).lte('data_referencia', `${mesStr}-31`).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
+        
         dadosGlobais = pData || []; metasGlobais = mData || [];
         ajustarSeletores();
     }
 
     async function importarArquivos() {
         const files = document.getElementById('excel-files').files;
-        let logs = { sucesso: 0, duplicados: 0, total: 0 };
+        let logs = { arquivos: files.length, sucesso: 0, duplicados: 0, total_linhas: 0 };
         
         for(let file of files) {
             const fn = file.name.replace('.xlsx', '');
@@ -165,9 +171,8 @@
             const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             
             for(let r of json) {
-                logs.total++;
-                // Verifica se já existe para evitar duplicados
-                const { data: existe } = await _supabase.from('producao').select('id').eq('usuario_id', r.id_assistente).eq('data_referencia', dr).single();
+                logs.total_linhas++;
+                const { data: existe } = await _supabase.from('producao').select('id').eq('usuario_id', r.id_assistente).eq('data_referencia', dr).maybeSingle();
                 
                 if(existe) { logs.duplicados++; continue; }
 
@@ -184,14 +189,13 @@
             }
         }
         
-        const logDiv = document.getElementById('import-log');
         document.getElementById('log-content').innerHTML = `
-            Arquivos processados: ${files.length}<br>
-            Registros na planilha: ${logs.total}<br>
-            <b style="color:green">Novos importados: ${logs.sucesso}</b><br>
-            <b style="color:orange">Duplicados (ignorados): ${logs.duplicados}</b>
+            📂 Arquivos lidos: <b>${logs.arquivos}</b><br>
+            📄 Linhas processadas: <b>${logs.total_linhas}</b><br><br>
+            ✅ Importados com sucesso: <b style="color:#059669">${logs.sucesso}</b><br>
+            ⚠️ Duplicados ignorados: <b style="color:#d97706">${logs.duplicados}</b>
         `;
-        logDiv.style.display = 'block';
+        document.getElementById('import-log').style.display = 'block';
         carregarDados();
     }
 
@@ -216,7 +220,7 @@
             titulo = `Resumo da Semana ${sem}`;
         } else {
             filtrados = dadosGlobais;
-            titulo = `Consolidado do Mês`;
+            titulo = `Consolidado Mensal`;
         }
 
         atualizarPainel(filtrados, titulo);
@@ -226,13 +230,13 @@
     function atualizarPainel(dados, titulo) {
         const as = dados.filter(p => p.usuarios?.funcao === 'Assistente');
         const total = as.reduce((a,b)=>a+b.quantidade,0);
-        const head = new Set(as.map(p => p.usuarios?.nome + p.data_referencia)).size || 1;
-        const headUnico = new Set(as.map(p => p.usuarios?.nome)).size || 1;
+        const diasNoContexto = new Set(as.map(p => p.data_referencia)).size || 1;
+        const headcount = new Set(as.map(p => p.usuarios?.nome)).size || 1;
 
         document.getElementById('panel-titulo').innerText = titulo;
-        document.getElementById('panel-info-extra').innerText = `${headUnico} Assistentes envolvidos`;
+        document.getElementById('panel-info-extra').innerText = `${headcount} Assistentes ativos`;
         document.getElementById('p-total').innerText = total.toLocaleString();
-        document.getElementById('p-media').innerText = (total / head).toFixed(0);
+        document.getElementById('p-media').innerText = (total / diasNoContexto / headcount).toFixed(0);
         document.getElementById('p-clt').innerText = as.filter(p=>(p.usuarios?.contrato||'').includes('CLT')).reduce((a,b)=>a+b.quantidade,0).toLocaleString();
         document.getElementById('p-pj').innerText = as.filter(p=>!(p.usuarios?.contrato||'').includes('CLT')).reduce((a,b)=>a+b.quantidade,0).toLocaleString();
         document.getElementById('p-fifo').innerText = as.reduce((a,b)=>a+b.fifo,0).toLocaleString();
@@ -242,11 +246,23 @@
     }
 
     function renderizarTabela(dados, isDiaUnico) {
+        let stats = {};
+        // Ordena para cálculo correto de acumulados (do mais antigo para o mais novo)
+        [...dadosGlobais].reverse().forEach(p => {
+            const uid = p.usuario_id, wk = getWeekOfMonth(p.data_referencia);
+            if(!stats[uid]) stats[uid] = { m:0, d:0, s:{} };
+            if(!stats[uid].s[wk]) stats[uid].s[wk] = { t:0, d:0 };
+            stats[uid].m += p.quantidade; stats[uid].d++;
+            stats[uid].s[wk].t += p.quantidade; stats[uid].s[wk].d++;
+            p.tS = stats[uid].s[wk].t; p.mS = (p.tS / stats[uid].s[wk].d).toFixed(0);
+            p.tM = stats[uid].m; p.mM = (p.tM / stats[uid].d).toFixed(0);
+        });
+
         let html = ''; let lastD = '';
         dados.forEach(p => {
             const dt = p.data_referencia.split('-').reverse().join('/');
             if(!isDiaUnico && dt !== lastD) {
-                html += `<tr class="divider-row"><td colspan="9">📅 DATA: ${dt}</td></tr>`;
+                html += `<tr class="divider-row"><td colspan="11">📅 DATA: ${dt}</td></tr>`;
                 lastD = dt;
             }
             const meta = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
@@ -256,11 +272,11 @@
                 <td><b>${p.usuarios?.nome || 'N/A'}</b></td>
                 <td style="text-align:center; color:var(--primary); font-weight:800">${p.quantidade}</td>
                 <td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td>
-                <td>-</td><td>-</td>
+                <td>${p.tS}</td><td>${p.tM}</td><td>${p.mS}</td><td>${p.mM}</td>
                 <td><span style="font-weight:800; color:${ating>=100?'#059669':'#dc2626'}">${ating}%</span></td>
             </tr>`;
         });
-        document.getElementById('tabela-corpo').innerHTML = html || '<tr><td colspan="9" style="text-align:center">Nenhum dado para este filtro.</td></tr>';
+        document.getElementById('tabela-corpo').innerHTML = html || '<tr><td colspan="11" style="text-align:center">Nenhum dado para este filtro.</td></tr>';
     }
 
     carregarDados();
