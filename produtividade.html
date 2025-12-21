@@ -10,112 +10,113 @@
         :root { --primary: #e11d48; --clt: #0284c7; --pj: #7c3aed; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         
-        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .top-nav h1 { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-top h1 { margin: 0; font-size: 1.2rem; font-weight: 800; }
 
-        /* Dashboard de Indicadores */
-        .stats-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 20px; overflow: hidden; }
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border-bottom: 1px solid var(--border); }
-        .stats-row:last-child { border-bottom: none; }
-        .stat-box { padding: 15px 20px; border-right: 1px solid var(--border); }
-        .stat-box:last-child { border-right: none; }
-        .stat-label { font-size: 0.62rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--text); }
-        .stat-accent { color: var(--primary); }
+        /* Stats Fixed */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 12px; border-radius: 10px; border-top: 3px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-label { font-size: 0.6rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-value { font-size: 1.1rem; font-weight: 800; }
 
-        /* Tabela Categorias Detalhada */
-        .cat-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; background: #fff; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-        .cat-table th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
-        .cat-table td { padding: 10px; border-bottom: 1px solid #f8fafc; font-weight: 600; }
+        /* Histórico Cards (Semanais e Mensal) */
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .history-card { background: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .history-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(225, 29, 72, 0.1); }
+        .history-card i { display: block; font-size: 1.2rem; margin-bottom: 8px; }
+        .history-card span { font-size: 0.8rem; font-weight: 700; color: #475569; }
 
-        /* Controles */
-        .controls-bar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: white; border: 1px solid var(--border); color: #64748b; }
-
-        /* Tabela Principal */
-        .table-card { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        /* Tabela Hoje */
+        .section-title { font-size: 0.9rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background: #f8fafc; padding: 12px 15px; text-align: left; font-weight: 700; color: #475569; border-bottom: 2px solid var(--border); }
-        td { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; }
-        tbody tr:nth-child(even) { background: #fbfcfe; }
-        .dia-divider { background: #334155 !important; color: white; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; padding: 10px 15px; }
+        th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
         .badge { padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; color: white; }
+
+        /* Modais */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 2% auto; padding: 20px; border-radius: 15px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px; }
+        .close { font-size: 24px; cursor: pointer; font-weight: bold; }
+
+        .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #64748b; color: white; }
     </style>
 </head>
 <body>
 
-<div class="top-nav">
-    <h1>Dashboard de Produtividade</h1>
-    <button class="btn btn-secondary" onclick="window.location.href='gestao.html'">⚙️ Gestão de Equipe</button>
-</div>
-
-<div class="stats-container">
-    <div class="stats-row">
-        <div class="stat-box"><div class="stat-label">Total Mês (Time)</div><div class="stat-value stat-accent" id="kpi-total-mes">0</div></div>
-        <div class="stat-box"><div class="stat-label">Dias Trabalhados</div><div class="stat-value" id="kpi-dias">0</div></div>
-        <div class="stat-box"><div class="stat-label">Media por Assistente (Mês)</div><div class="stat-value" id="kpi-media-as-mes">0</div></div>
-        <div class="stat-box"><div class="stat-label">Assistente por dia</div><div class="stat-value" id="kpi-media-as-dia">0</div></div>
-    </div>
-    <div class="stats-row" style="background: #fafafa;">
-        <div class="stat-box"><div class="stat-label">Média Diária Time</div><div class="stat-value" id="kpi-media-geral">0</div></div>
-        <div class="stat-box"><div class="stat-label">Média Diária CLT</div><div class="stat-value" style="color:var(--clt)" id="kpi-media-clt">0</div></div>
-        <div class="stat-box"><div class="stat-label">Média Diária PJ</div><div class="stat-value" style="color:var(--pj)" id="kpi-media-pj">0</div></div>
+<div class="header-top">
+    <h1>Painel de Produtividade Gupy</h1>
+    <div style="display:flex; gap:10px;">
+        <input type="month" id="filtro-mes" onchange="carregarDados()">
+        <button class="btn btn-secondary" onclick="window.location.href='gestao.html'">⚙️ Gestão</button>
     </div>
 </div>
 
-<h3 style="font-size: 0.9rem; margin-bottom: 10px;">📊 Performance por Categoria (Time)</h3>
-<table class="cat-table">
-    <thead>
-        <tr>
-            <th>CATEGORIA</th>
-            <th>DIÁRIA (MÉDIA)</th>
-            <th>SEMANAL (TOTAL)</th>
-            <th>SEMANAL (MÉDIA)</th>
-            <th>MENSAL (TOTAL)</th>
-            <th>MENSAL (MÉDIA)</th>
-        </tr>
-    </thead>
-    <tbody id="tabela-categorias">
-        </tbody>
-</table>
-
-<div class="controls-bar">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <input type="file" id="excel-files" accept=".xlsx" multiple>
-        <button class="btn btn-primary" onclick="importarArquivos()">📥 Importar Dados</button>
-    </div>
-    <input type="month" id="filtro-mes" onchange="carregarDados()">
+<div class="stats-grid">
+    <div class="stat-card" style="border-top-color:#f59e0b;"><div class="stat-label">Dias Trabalhados</div><div class="stat-value" id="kpi-dias">0</div></div>
+    <div class="stat-card" style="border-top-color:#0ea5e9;"><div class="stat-label">Assistentes por dia</div><div class="stat-value" id="kpi-media-as-dia">0</div></div>
+    <div class="stat-card" style="border-top-color:var(--primary);"><div class="stat-label">Média CLT (Dia)</div><div class="stat-value" id="kpi-media-clt">0</div></div>
+    <div class="stat-card" style="border-top-color:var(--pj);"><div class="stat-label">Média PJ (Dia)</div><div class="stat-value" id="kpi-media-pj">0</div></div>
+    <div class="stat-card" style="border-top-color:#10b981;"><div class="stat-label">Média por Assistente (Mês)</div><div class="stat-value" id="kpi-media-as-mes">0</div></div>
 </div>
 
-<div class="table-card">
+<div class="section-title">📂 Histórico e Fechamentos</div>
+<div class="history-grid" id="history-container">
+    <div class="history-card" onclick="abrirModal('mes')">
+        <i>📊</i><span>Mês Completo</span>
+    </div>
+    </div>
+
+<div class="section-title">🕒 Última Produção Importada: <span id="data-atual" style="color:var(--primary); margin-left:10px;">-</span></div>
+<div class="card" style="margin-bottom:20px;">
+    <input type="file" id="excel-files" accept=".xlsx" multiple>
+    <button class="btn btn-primary" onclick="importarArquivos()">📥 Subir Novos Dados</button>
+</div>
+
+<div class="table-container">
     <table>
         <thead>
             <tr>
                 <th>Assistente</th>
-                <th style="color:var(--primary)">Total Dia</th>
-                <th>Acum. Semana</th>
-                <th>Acum. Mês</th>
+                <th>Total Dia</th>
                 <th>Média Semana</th>
                 <th>Média Mês</th>
-                <th>Ating.</th>
+                <th>Status</th>
             </tr>
         </thead>
-        <tbody id="tabela-corpo"></tbody>
+        <tbody id="tabela-hoje">
+            <tr><td colspan="5" style="text-align:center; padding:30px;">Carregando dados recentes...</td></tr>
+        </tbody>
     </table>
+</div>
+
+<div id="modalHist" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-titulo" style="margin:0;">Relatório</h2>
+            <span class="close" onclick="fecharModal()">&times;</span>
+        </div>
+        <div id="modal-body"></div>
+    </div>
 </div>
 
 <script>
     const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    
+    let dadosGlobais = [];
+    let metasGlobais = [];
+    let statsIndividuais = {};
 
     document.getElementById('filtro-mes').value = new Date().toISOString().substring(0,7);
 
     async function importarArquivos() {
         const files = document.getElementById('excel-files').files;
-        if(files.length === 0) return alert("Selecione arquivos .xlsx");
+        if(files.length === 0) return;
         for(let file of files) {
             const fn = file.name.replace('.xlsx', '');
             if(!/^\d{8}$/.test(fn)) continue;
@@ -134,7 +135,7 @@
             })).filter(x => x.usuario_id);
             await _supabase.from('producao').insert(ins);
         }
-        alert("Processamento concluído!"); carregarDados();
+        carregarDados();
     }
 
     function getWeek(d) {
@@ -145,109 +146,106 @@
 
     async function carregarDados() {
         const mesStr = document.getElementById('filtro-mes').value;
-        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mesStr}-01`).lte('data_referencia', `${mesStr}-31`);
+        const { data: pData } = await _supabase.from('producao').select('*, usuarios(*)').gte('data_referencia', `${mesStr}-01`).lte('data_referencia', `${mesStr}-31`).order('data_referencia', {ascending: false});
         const { data: mData } = await _supabase.from('metas').select('*');
+        
+        dadosGlobais = pData || [];
+        metasGlobais = mData || [];
+        
+        if(dadosGlobais.length === 0) return zerarTudo();
+        
+        processarKPIs();
+        renderizarHoje();
+        renderizarCardsSemanais();
+    }
 
-        if(!pData || pData.length === 0) {
-            document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">Sem dados.</td></tr>';
-            return;
-        }
-
-        pData.sort((a, b) => {
-            if (a.data_referencia > b.data_referencia) return -1;
-            if (a.data_referencia < b.data_referencia) return 1;
-            return (a.usuarios?.nome || '').localeCompare(b.usuarios?.nome || '');
-        });
-
-        let ind = {}; 
-        let cat = { 
-            fifo: { m:0, s:{}, d:{} }, 
-            gt:   { m:0, s:{}, d:{} }, 
-            gp:   { m:0, s:{}, d:{} }, 
-            fc:   { m:0, s:{}, d:{} } 
-        };
+    function processarKPIs() {
+        statsIndividuais = {};
         let kpi = { totalG:0, nomesU:new Set(), diasU:new Set(), totalC:0, dC:new Set(), totalP:0, dP:new Set(), assDia: {} };
 
-        pData.forEach(p => {
-            const dr = p.data_referencia;
+        dadosGlobais.filter(p => p.usuarios?.funcao === 'Assistente').forEach(p => {
             const uid = p.usuario_id;
-            const qtd = Number(p.quantidade);
-            const wk = getWeek(new Date(dr + 'T12:00:00'));
+            const wk = getWeek(new Date(p.data_referencia + 'T12:00:00'));
+            const isCLT = (p.usuarios.contrato || '').includes('CLT');
 
-            if(p.usuarios?.funcao === 'Assistente') {
-                kpi.totalG += qtd; kpi.nomesU.add(p.usuarios.nome); kpi.diasU.add(dr);
-                if(!kpi.assDia[dr]) kpi.assDia[dr] = new Set();
-                kpi.assDia[dr].add(p.usuarios.nome);
-                if((p.usuarios.contrato || '').includes('CLT')) { kpi.totalC += qtd; kpi.dC.add(dr); } else { kpi.totalP += qtd; kpi.dP.add(dr); }
+            kpi.totalG += p.quantidade; kpi.nomesU.add(p.usuarios.nome); kpi.diasU.add(p.data_referencia);
+            if(!kpi.assDia[p.data_referencia]) kpi.assDia[p.data_referencia] = new Set();
+            kpi.assDia[p.data_referencia].add(p.usuarios.nome);
+            if(isCLT) { kpi.totalC += p.quantidade; kpi.dC.add(p.data_referencia); } else { kpi.totalP += p.quantidade; kpi.dP.add(p.data_referencia); }
 
-                // Categorias - Acumuladores
-                ['fifo', 'gradual_total', 'gradual_parcial', 'perfil_fc'].forEach(key => {
-                    const alias = key === 'gradual_total' ? 'gt' : (key === 'gradual_parcial' ? 'gp' : (key === 'perfil_fc' ? 'fc' : 'fifo'));
-                    const val = Number(p[key] || 0);
-                    cat[alias].m += val;
-                    cat[alias].s[wk] = (cat[alias].s[wk] || 0) + val;
-                    cat[alias].d[dr] = (cat[alias].d[dr] || 0) + val;
-                });
-
-                if(!ind[uid]) ind[uid] = { total:0, dias:0, semanas:{} };
-                ind[uid].total += qtd; ind[uid].dias++;
-                if(!ind[uid].semanas[wk]) ind[uid].semanas[wk] = { total:0, dias:0 };
-                ind[uid].semanas[wk].total += qtd; ind[uid].semanas[wk].dias++;
-            }
+            if(!statsIndividuais[uid]) statsIndividuais[uid] = { mes:0, dias:0, semanas:{} };
+            statsIndividuais[uid].mes += p.quantidade; statsIndividuais[uid].dias++;
+            if(!statsIndividuais[uid].semanas[wk]) statsIndividuais[uid].semanas[wk] = { total:0, dias:0 };
+            statsIndividuais[uid].semanas[wk].total += p.quantidade; statsIndividuais[uid].semanas[wk].dias++;
         });
 
-        // Render Categorias
-        const diasTotal = kpi.diasU.size || 1;
-        const semTotal = Object.keys(cat.fifo.s).length || 1;
-        
-        const catKeys = [['FIFO','fifo'],['GRADUAL TOTAL','gt'],['GRADUAL PARCIAL','gp'],['PERFIL FC','fc']];
-        document.getElementById('tabela-categorias').innerHTML = catKeys.map(([label, key]) => `
-            <tr>
-                <td>${label}</td>
-                <td>${(cat[key].m / diasTotal).toFixed(0)}</td>
-                <td>${(cat[key].m / semTotal).toFixed(0)}</td>
-                <td>${(cat[key].m / semTotal / (diasTotal/semTotal)).toFixed(0)}</td>
-                <td>${cat[key].m.toLocaleString()}</td>
-                <td>${(cat[key].m / kpi.nomesU.size).toFixed(0)}</td>
-            </tr>
-        `).join('');
-
-        // Tabela Principal
-        let html = ''; let lastD = '';
-        pData.forEach(p => {
-            const dtRaw = new Date(p.data_referencia + 'T12:00:00');
-            const dt = dtRaw.toLocaleDateString('pt-BR');
-            if (dt !== lastD) { html += `<tr class="dia-divider"><td colspan="7">📅 PRODUÇÃO DE ${dt}</td></tr>`; lastD = dt; }
-            const uid = p.usuario_id;
-            const wk = getWeek(dtRaw);
-            const s = ind[uid] || {total:0, dias:1, semanas:{}};
-            const m = mData.filter(x => x.usuario_id == uid && x.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
-            const mv = m ? m.valor_meta : 0;
-            const ating = mv > 0 ? ((p.quantidade / mv) * 100).toFixed(0) : 0;
-
-            html += `<tr>
-                <td><strong>${p.usuarios?.nome || uid}</strong></td>
-                <td style="font-weight:800; color:var(--primary)">${p.quantidade}</td>
-                <td>${s.semanas[wk]?.total || 0}</td>
-                <td>${s.total}</td>
-                <td>${(s.semanas[wk]?.total / s.semanas[wk]?.dias).toFixed(0)}</td>
-                <td>${(s.total / s.dias).toFixed(0)}</td>
-                <td><span class="badge" style="background:${ating>=100?'#059669':'#dc2626'}">${ating}%</span></td>
-            </tr>`;
-        });
-        document.getElementById('tabela-corpo').innerHTML = html;
-
-        // KPIs de topo
-        const head = kpi.nomesU.size || 1;
+        const headcount = kpi.nomesU.size || 1;
+        const dias = kpi.diasU.size || 1;
         let sumAss = 0; Object.keys(kpi.assDia).forEach(d => sumAss += kpi.assDia[d].size);
-        document.getElementById('kpi-total-mes').innerText = kpi.totalG.toLocaleString();
-        document.getElementById('kpi-dias').innerText = diasTotal;
-        document.getElementById('kpi-media-as-mes').innerText = (kpi.totalG / head).toFixed(0);
-        document.getElementById('kpi-media-as-dia').innerText = (sumAss / diasTotal).toFixed(1);
-        document.getElementById('kpi-media-geral').innerText = (kpi.totalG / head / diasTotal).toFixed(0);
+
+        document.getElementById('kpi-dias').innerText = dias;
+        document.getElementById('kpi-media-as-dia').innerText = (sumAss / dias).toFixed(1);
         document.getElementById('kpi-media-clt').innerText = (kpi.totalC / (kpi.dC.size || 1)).toFixed(0);
         document.getElementById('kpi-media-pj').innerText = (kpi.totalP / (kpi.dP.size || 1)).toFixed(0);
+        document.getElementById('kpi-media-as-mes').innerText = (kpi.totalG / headcount).toFixed(0);
     }
+
+    function renderizarHoje() {
+        const ultimaData = dadosGlobais[0].data_referencia;
+        document.getElementById('data-atual').innerText = new Date(ultimaData + 'T12:00:00').toLocaleDateString('pt-BR');
+        
+        const assistentesHoje = dadosGlobais.filter(p => p.data_referencia === ultimaData).sort((a,b) => a.usuarios.nome.localeCompare(b.usuarios.nome));
+        
+        document.getElementById('tabela-hoje').innerHTML = assistentesHoje.map(p => {
+            const wk = getWeek(new Date(p.data_referencia + 'T12:00:00'));
+            const s = statsIndividuais[p.usuario_id];
+            const meta = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
+            const ating = meta ? ((p.quantidade / meta.valor_meta)*100).toFixed(0) : 0;
+            
+            return `<tr>
+                <td><strong>${p.usuarios.nome}</strong></td>
+                <td style="color:var(--primary); font-weight:800;">${p.quantidade}</td>
+                <td>${(s.semanas[wk].total / s.semanas[wk].dias).toFixed(0)}</td>
+                <td>${(s.mes / s.dias).toFixed(0)}</td>
+                <td><span class="badge" style="background:${ating>=100?'#059669':'#dc2626'}">${ating}%</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderizarCardsSemanais() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = `<div class="history-card" onclick="abrirModal('mes')"><i>📅</i><span>Mês Completo</span></div>`;
+        
+        const semanas = [...new Set(dadosGlobais.map(p => getWeek(new Date(p.data_referencia + 'T12:00:00'))))].sort();
+        semanas.forEach((s, index) => {
+            container.innerHTML += `<div class="history-card" onclick="abrirModal('semana', ${s})"><i>📆</i><span>Semana ${index + 1}</span></div>`;
+        });
+    }
+
+    function abrirModal(tipo, valor) {
+        const modal = document.getElementById('modalHist');
+        const titulo = document.getElementById('modal-titulo');
+        const body = document.getElementById('modal-body');
+        modal.style.display = "block";
+        
+        let filtrados = tipo === 'mes' ? dadosGlobais : dadosGlobais.filter(p => getWeek(new Date(p.data_referencia + 'T12:00:00')) === valor);
+        titulo.innerText = tipo === 'mes' ? "Relatório do Mês" : "Relatório da Semana " + valor;
+        
+        let html = '<table style="width:100%"><thead><tr><th>Data</th><th>Nome</th><th>Total</th><th>Ating.</th></tr></thead><tbody>';
+        let lastD = '';
+        filtrados.forEach(p => {
+            const dt = new Date(p.data_referencia + 'T12:00:00').toLocaleDateString('pt-BR');
+            if(dt !== lastD) { html += `<tr style="background:#f1f5f9; font-weight:bold;"><td colspan="4">${dt}</td></tr>`; lastD = dt; }
+            const m = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
+            const ating = m ? ((p.quantidade / m.valor_meta)*100).toFixed(0) : 0;
+            html += `<tr><td>${dt}</td><td>${p.usuarios?.nome}</td><td>${p.quantidade}</td><td>${ating}%</td></tr>`;
+        });
+        body.innerHTML = html + '</tbody></table>';
+    }
+
+    function fecharModal() { document.getElementById('modalHist').style.display = "none"; }
+    window.onclick = function(event) { if (event.target == document.getElementById('modalHist')) fecharModal(); }
+
     carregarDados();
 </script>
 </body>
