@@ -19,6 +19,7 @@
             --bg: #f8fafc; 
             --nav: #1e293b; 
             --border: #e2e8f0; 
+            --panel-gray: #334155; /* Cor cinza do seletor */
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: #1e293b; }
 
@@ -30,7 +31,7 @@
         .brand .big { font-size: 1.1rem; font-weight: 700; color: white; }
         .brand .big span { color: var(--primary); }
         
-        .nav-tools { display: flex; align-items: center; gap: 10px; background: #334155; padding: 6px 12px; border-radius: 10px; border: 1px solid #475569; }
+        .nav-tools { display: flex; align-items: center; gap: 10px; background: var(--panel-gray); padding: 6px 12px; border-radius: 10px; border: 1px solid #475569; }
         .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.8rem; font-weight: 500; outline: none; cursor: pointer; }
         .nav-tools option { background: var(--nav); color: white; }
 
@@ -42,25 +43,26 @@
 
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* MINI PAINEL ATUALIZADO */
+        /* MINI PAINEL - FUNDO CINZA UNIFICADO */
         .dynamic-panel { background: #1e293b; color: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 6px solid var(--primary); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         
-        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: #e2e8f0; padding: 15px; border-radius: 10px; }
-        .panel-column { display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #cbd5e1; padding-right: 10px; }
+        .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: var(--panel-gray); padding: 20px; border-radius: 10px; }
+        .panel-column { display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #475569; padding-right: 10px; }
         .panel-column:last-child { border-right: none; }
         
         .stat-group { display: flex; justify-content: space-between; align-items: flex-start; min-height: 40px; }
         .stat-item { display: flex; flex-direction: column; gap: 2px; }
         
-        /* Títulos em Preto e Fontes Finas */
-        .label { font-size: 0.55rem; color: #000000; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
+        /* Títulos em Preto com mais peso para leitura */
+        .label { font-size: 0.55rem; color: #000000; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px; }
         
-        /* Valores Padronizados com Fonte Mais Fina (500/600) */
-        .value { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
-        .value.white-res { color: #ffffff; background: #334155; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        /* Valores: Retirado o fundo white-res, agora flutuam no cinza */
+        .value { font-size: 1.05rem; font-weight: 500; }
+        .value.white-res { color: #ffffff; } /* Somente cor branca, sem fundo */
         .value.small-val { font-size: 0.85rem; }
 
+        /* Cores das métricas específicas */
         .color-clt { color: var(--clt) !important; }
         .color-pj { color: var(--pj) !important; }
         .color-fifo { color: var(--fifo) !important; }
