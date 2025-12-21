@@ -12,10 +12,10 @@
             --primary: #e11d48; 
             --clt: #0ea5e9; 
             --pj: #10b981; 
-            --fifo: #f59e0b; /* Amarelo */
-            --gt: #a67c52;   /* Marrom Claro */
-            --gp: #d946ef;   /* Rosa */
-            --fc: #8b5cf6;   /* Roxo */
+            --fifo: #f59e0b; 
+            --gt: #a67c52;   
+            --gp: #d946ef;   
+            --fc: #8b5cf6;   
             --bg: #f8fafc; 
             --nav: #1e293b; 
             --border: #e2e8f0; 
@@ -43,7 +43,7 @@
 
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
 
-        /* MINI PAINEL COLORIDO */
+        /* MINI PAINEL */
         .dynamic-panel { background: #1e293b; color: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 6px solid var(--primary); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: var(--panel-inner); padding: 15px; border-radius: 10px; }
@@ -54,7 +54,6 @@
         .value { font-size: 1.05rem; font-weight: 800; }
         .value.small-val { font-size: 0.85rem; opacity: 0.9; }
 
-        /* CLASSES DE CORES */
         .color-clt { color: var(--clt); }
         .color-pj { color: var(--pj); }
         .color-fifo { color: var(--fifo); }
@@ -109,7 +108,7 @@
         <button class="btn-import" onclick="document.getElementById('excel-files').click()">📥 Importar Planilhas</button>
         <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
         <div style="text-align: right; border-left: 1px solid #334155; padding-left: 20px;">
-            <span id="user-display" style="font-weight:700; font-size:0.85rem; color:white; display:block;"></span>
+            <span id="user-display" style="font-weight:700; font-size:0.85rem; color:white; display:block;">Patrícia</span>
             <span style="color: #f87171; font-size: 0.7rem; cursor: pointer; font-weight: 700;" onclick="logout()">Sair</span>
         </div>
     </div>
@@ -127,7 +126,7 @@
                     <div style="display:flex;flex-direction:column"><span class="label">Total Geral</span><span class="value" id="p-total">0</span></div>
                     <div style="display:flex;flex-direction:column;text-align:right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div>
                 </div>
-                <div class="stat-group"><div style="display:flex;flex-direction:column"><span class="label">Assistentes Ativos</span><span class="value" id="p-headcount">0</span></div></div>
+                <div class="stat-group"><div style="display:flex;flex-direction:column"><span class="label">Assistentes (Headcount)</span><span class="value" id="p-headcount">0</span></div></div>
             </div>
             <div class="panel-column">
                 <div class="stat-group">
@@ -271,27 +270,50 @@
     }
 
     function atualizarPainel(dados, titulo) {
-        const as = dados.filter(p => p.usuario_id != null);
-        const total = as.reduce((a,b)=>a+b.quantidade,0);
-        const dias = new Set(as.map(p => p.data_referencia)).size || 1;
-        const head = new Set(as.map(p => p.usuario_id)).size || 1;
+        // CORREÇÃO: Todos entram na soma total
+        const todosValidos = dados.filter(p => p.usuario_id != null);
+        
+        // Apenas Assistentes para o cálculo do Headcount (divisor da média)
+        const apenasAssistentes = todosValidos.filter(p => p.usuarios?.funcao === 'Assistente');
+        
+        const total = todosValidos.reduce((a,b) => a + b.quantidade, 0);
+        const dias = new Set(todosValidos.map(p => p.data_referencia)).size || 1;
+        const headAssistentes = new Set(apenasAssistentes.map(p => p.usuario_id)).size || 1;
+
         document.getElementById('panel-titulo').innerText = titulo;
         document.getElementById('p-total').innerText = total.toLocaleString();
-        document.getElementById('p-media').innerText = (total/dias/head || 0).toFixed(0);
-        document.getElementById('p-headcount').innerText = head;
-        const clt = as.filter(p=>(p.usuarios?.contrato||'').includes('CLT'));
-        const pj = as.filter(p=>!(p.usuarios?.contrato||'').includes('CLT') && p.usuarios);
-        const cTot = clt.reduce((a,b)=>a+b.quantidade,0);
-        document.getElementById('p-clt').innerText = cTot.toLocaleString();
-        document.getElementById('p-clt-media').innerText = (cTot/dias/(new Set(clt.map(x=>x.usuario_id)).size||1)).toFixed(0);
-        const pTot = pj.reduce((a,b)=>a+b.quantidade,0);
-        document.getElementById('p-pj').innerText = pTot.toLocaleString();
-        document.getElementById('p-pj-media').innerText = (pTot/dias/(new Set(pj.map(x=>x.usuario_id)).size||1)).toFixed(0);
-        const f=as.reduce((a,b)=>a+b.fifo,0), gt=as.reduce((a,b)=>a+b.gradual_total,0), gp=as.reduce((a,b)=>a+b.gradual_parcial,0), fc=as.reduce((a,b)=>a+b.perfil_fc,0);
-        document.getElementById('p-fifo').innerText = f.toLocaleString(); document.getElementById('p-fifo-media').innerText = (f/dias/head||0).toFixed(0);
-        document.getElementById('p-gt').innerText = gt.toLocaleString(); document.getElementById('p-gt-media').innerText = (gt/dias/head||0).toFixed(0);
-        document.getElementById('p-gp').innerText = gp.toLocaleString(); document.getElementById('p-gp-media').innerText = (gp/dias/head||0).toFixed(0);
-        document.getElementById('p-fc').innerText = fc.toLocaleString(); document.getElementById('p-fc-media').innerText = (fc/dias/head||0).toFixed(0);
+        document.getElementById('p-media').innerText = (total / dias / headAssistentes).toFixed(0);
+        document.getElementById('p-headcount').innerText = headAssistentes;
+
+        // CLT / PJ (Soma todos, média por Assistente do contrato)
+        const cltTodos = todosValidos.filter(p => (p.usuarios?.contrato || '').includes('CLT'));
+        const cltAssistentes = apenasAssistentes.filter(p => (p.usuarios?.contrato || '').includes('CLT'));
+        const totalCLT = cltTodos.reduce((a,b) => a + b.quantidade, 0);
+        const headCLT = new Set(cltAssistentes.map(x => x.usuario_id)).size || 1;
+        document.getElementById('p-clt').innerText = totalCLT.toLocaleString();
+        document.getElementById('p-clt-media').innerText = (totalCLT / dias / headCLT).toFixed(0);
+
+        const pjTodos = todosValidos.filter(p => !(p.usuarios?.contrato || '').includes('CLT') && p.usuarios);
+        const pjAssistentes = apenasAssistentes.filter(p => !(p.usuarios?.contrato || '').includes('CLT'));
+        const totalPJ = pjTodos.reduce((a,b) => a + b.quantidade, 0);
+        const headPJ = new Set(pjAssistentes.map(x => x.usuario_id)).size || 1;
+        document.getElementById('p-pj').innerText = totalPJ.toLocaleString();
+        document.getElementById('p-pj-media').innerText = (totalPJ / dias / headPJ).toFixed(0);
+
+        // Categorias (Soma todos, média por Headcount de Assistentes)
+        const f = todosValidos.reduce((a,b) => a + b.fifo, 0);
+        const gt = todosValidos.reduce((a,b) => a + b.gradual_total, 0);
+        const gp = todosValidos.reduce((a,b) => a + b.gradual_parcial, 0);
+        const fc = todosValidos.reduce((a,b) => a + b.perfil_fc, 0);
+
+        document.getElementById('p-fifo').innerText = f.toLocaleString();
+        document.getElementById('p-fifo-media').innerText = (f / dias / headAssistentes).toFixed(0);
+        document.getElementById('p-gt').innerText = gt.toLocaleString();
+        document.getElementById('p-gt-media').innerText = (gt / dias / headAssistentes).toFixed(0);
+        document.getElementById('p-gp').innerText = gp.toLocaleString();
+        document.getElementById('p-gp-media').innerText = (gp / dias / headAssistentes).toFixed(0);
+        document.getElementById('p-fc').innerText = fc.toLocaleString();
+        document.getElementById('p-fc-media').innerText = (fc / dias / headAssistentes).toFixed(0);
     }
 
     function renderizarTabela(dados, isDia) {
