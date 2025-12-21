@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Individual</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- PALETA PASTEL SOFISTICADA (Mesma da Produtividade) --- */
+        :root { 
+            --primary: #f87171;    
+            --clt: #60a5fa;        
+            --pj: #34d399;         
+            --fifo: #fbbf24;       
+            --gt: #a8a29e;         
+            --gp: #fb923c;         
+            --fc: #c084fc;         
+
+            --bg: #f3f4f6;              
+            --nav: #1e293b;             
+            --card: #ffffff;            
+            --border: #e5e7eb;          
+            --text-main: #374151;       
+            --text-muted: #9ca3af;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: var(--text-main); }
+
+        /* NAVBAR */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 75px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .brand .small { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; color: #cbd5e1; display: block; }
+        .brand .big { font-size: 1.1rem; font-weight: 700; color: white; }
+        
+        .nav-links { display: flex; gap: 20px; margin-left: 20px; }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-item.active { color: white; border-bottom: 2px solid var(--primary); }
+        .nav-item:hover { color: white; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* CONTROLES SUPERIORES */
+        .top-controls { display: flex; gap: 15px; margin-bottom: 25px; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); align-items: center; }
+        .control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .control-group label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        select, input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; font-size: 0.9rem; color: var(--text-main); outline: none; }
+
+        /* GRID DE ESTATÍSTICAS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--nav); }
+        .stat-sub { font-size: 0.8rem; margin-top: 5px; }
+        .stat-sub.good { color: var(--pj); }
+        .stat-sub.bad { color: var(--primary); }
+
+        /* ÁREA DOS GRÁFICOS */
+        .charts-area { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .chart-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); min-height: 350px; }
+        .chart-title { font-size: 0.9rem; font-weight: 700; color: var(--nav); margin-bottom: 15px; display: flex; justify-content: space-between; }
+
+        /* TABELA HISTÓRICO */
+        .table-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f8fafc; padding: 12px 15px; text-align: left; color: var(--text-muted); font-weight: 700; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tbody tr:hover { background: #f9fafb; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; color: white; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-left">
+        <div class="brand" onclick="window.location.href='produtividade.html'">
+            <span class="small">controle de</span>
+            <div class="big">PRODUTIVIDADE</div>
+        </div>
+        <div class="nav-links">
+            <a href="produtividade.html" class="nav-item">Dashboard</a>
+            <a href="performance.html" class="nav-item active">Performance</a>
+            <a href="gestao.html" class="nav-item">Gestão</a>
+        </div>
+    </div>
+    <div style="font-size:0.85rem; font-weight:600;">Análise Individual</div>
+</nav>
+
+<div class="container">
+    
+    <div class="top-controls">
+        <div class="control-group">
+            <label>Selecione o Colaborador</label>
+            <select id="user-selector" onchange="carregarPerformance()">
+                <option value="">Carregando...</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Mês de Referência</label>
+            <input type="month" id="month-selector" onchange="carregarPerformance()">
+        </div>
+        <div class="control-group" style="flex:0.5; text-align:right;">
+            <label>Meta Atual</label>
+            <div id="meta-display" style="font-size:1.2rem; font-weight:700; color:var(--nav)">-</div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card" style="border-left: 4px solid var(--clt);">
+            <div class="stat-label">Total Produzido</div>
+            <div class="stat-value" id="kpi-total">0</div>
+            <div class="stat-sub" id="kpi-dias">0 dias trabalhados</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--pj);">
+            <div class="stat-label">Média Diária</div>
+            <div class="stat-value" id="kpi-media">0</div>
+            <div class="stat-sub" id="kpi-comp">-</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--fifo);">
+            <div class="stat-label">Melhor Dia</div>
+            <div class="stat-value" id="kpi-best">0</div>
+            <div class="stat-sub" id="kpi-best-date">-</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--primary);">
+            <div class="stat-label">Taxa de Atingimento</div>
+            <div class="stat-value" id="kpi-hitrate">0%</div>
+            <div class="stat-sub" id="kpi-miss">Bateu a meta em 0 dias</div>
+        </div>
+    </div>
+
+    <div class="charts-area">
+        <div class="chart-card">
+            <div class="chart-title">📈 Tendência Mensal vs Meta</div>
+            <canvas id="lineChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">🍰 Distribuição do Trabalho</div>
+            <canvas id="doughnutChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div style="padding:15px; font-weight:700; color:var(--nav); border-bottom:1px solid var(--border)">Histórico Detalhado</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Produção Total</th>
+                    <th>Meta</th>
+                    <th>Diferença</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    // Inicialização
+    const hoje = new Date();
+    document.getElementById('month-selector').value = new Date().toISOString().slice(0, 7);
+    
+    let chartLinha = null;
+    let chartRosca = null;
+
+    async function init() {
+        // Carrega Usuários no Select
+        const { data: users } = await _supabase.from('usuarios').select('*').order('nome');
+        const sel = document.getElementById('user-selector');
+        
+        // Filtra para pegar apenas quem tem produção ou é assistente ativo
+        const validos = users.filter(u => u.funcao !== 'Gestora' && u.funcao !== 'Auditora'); // Opcional: remover filtro se quiser ver todos
+        
+        sel.innerHTML = validos.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        
+        // Carrega o primeiro da lista automaticamente
+        if(validos.length > 0) carregarPerformance();
+    }
+
+    async function carregarPerformance() {
+        const uid = document.getElementById('user-selector').value;
+        const mes = document.getElementById('month-selector').value;
+        
+        if(!uid) return;
+
+        // 1. Busca Produção do Mês
+        const { data: prod } = await _supabase.from('producao')
+            .select('*')
+            .eq('usuario_id', uid)
+            .gte('data_referencia', `${mes}-01`)
+            .lte('data_referencia', `${mes}-31`)
+            .order('data_referencia');
+
+        // 2. Busca Meta Vigente
+        const { data: metas } = await _supabase.from('metas')
+            .select('*')
+            .eq('usuario_id', uid)
+            .order('data_inicio', { ascending: false });
+        
+        // Pega a meta mais recente que iniciou antes ou durante este mês
+        const metaAtual = metas.find(m => m.data_inicio <= `${mes}-31`)?.valor_meta || 0;
+        document.getElementById('meta-display').innerText = metaAtual;
+
+        calcularKPIs(prod, metaAtual);
+        renderizarGraficos(prod, metaAtual);
+        renderizarTabela(prod, metaAtual);
+    }
+
+    function calcularKPIs(dados, meta) {
+        if(!dados || dados.length === 0) {
+            document.getElementById('kpi-total').innerText = "0";
+            document.getElementById('kpi-media').innerText = "0";
+            document.getElementById('kpi-hitrate').innerText = "0%";
+            return;
+        }
+
+        const total = dados.reduce((a,b) => a + b.quantidade, 0);
+        const dias = dados.length;
+        const media = (total / dias).toFixed(0);
+        
+        // Melhor Dia
+        const best = dados.reduce((prev, current) => (prev.quantidade > current.quantidade) ? prev : current);
+        
+        // Hit Rate (Dias que bateu a meta)
+        const diasMeta = dados.filter(d => d.quantidade >= meta).length;
+        const hitRate = ((diasMeta / dias) * 100).toFixed(0);
+
+        document.getElementById('kpi-total').innerText = total.toLocaleString();
+        document.getElementById('kpi-dias').innerText = `${dias} dias trabalhados`;
+        document.getElementById('kpi-media').innerText = media;
+        document.getElementById('kpi-best').innerText = best.quantidade;
+        document.getElementById('kpi-best-date').innerText = best.data_referencia.split('-').reverse().join('/');
+        
+        const elHit = document.getElementById('kpi-hitrate');
+        elHit.innerText = `${hitRate}%`;
+        elHit.style.color = hitRate >= 100 ? 'var(--pj)' : (hitRate >= 80 ? 'var(--fifo)' : 'var(--primary)');
+        
+        document.getElementById('kpi-miss').innerText = `Bateu meta em ${diasMeta} de ${dias} dias`;
+    }
+
+    function renderizarGraficos(dados, meta) {
+        // Preparar Dados
+        const labels = dados.map(d => d.data_referencia.split('-')[2]); // Apenas o dia
+        const valores = dados.map(d => d.quantidade);
+        const metasArr = dados.map(() => meta); // Linha reta da meta
+
+        // Totais por Categoria
+        const tFifo = dados.reduce((a,b) => a + b.fifo, 0);
+        const tGt = dados.reduce((a,b) => a + b.gradual_total, 0);
+        const tGp = dados.reduce((a,b) => a + b.gradual_parcial, 0);
+        const tFc = dados.reduce((a,b) => a + b.perfil_fc, 0);
+
+        // --- GRÁFICO DE LINHA (TENDÊNCIA) ---
+        const ctxL = document.getElementById('lineChart').getContext('2d');
+        if(chartLinha) chartLinha.destroy();
+
+        chartLinha = new Chart(ctxL, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Produção Diária',
+                        data: valores,
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Meta',
+                        data: metasArr,
+                        borderColor: '#f87171',
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // --- GRÁFICO DE ROSCA (DISTRIBUIÇÃO) ---
+        const ctxD = document.getElementById('doughnutChart').getContext('2d');
+        if(chartRosca) chartRosca.destroy();
+
+        chartRosca = new Chart(ctxD, {
+            type: 'doughnut',
+            data: {
+                labels: ['FIFO', 'G. Total', 'G. Parcial', 'P. FC'],
+                datasets: [{
+                    data: [tFifo, tGt, tGp, tFc],
+                    backgroundColor: ['#fbbf24', '#a8a29e', '#fb923c', '#c084fc'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    function renderizarTabela(dados, meta) {
+        const tbody = document.getElementById('history-body');
+        // Ordenar decrescente (mais recente primeiro)
+        const sorted = [...dados].reverse();
+        
+        tbody.innerHTML = sorted.map(d => {
+            const ating = meta > 0 ? ((d.quantidade / meta) * 100).toFixed(0) : 0;
+            const diff = d.quantidade - meta;
+            const cor = ating >= 100 ? 'var(--pj)' : 'var(--primary)';
+            const sinal = diff > 0 ? '+' : '';
+
+            return `
+                <tr>
+                    <td>${d.data_referencia.split('-').reverse().join('/')}</td>
+                    <td style="font-weight:700">${d.quantidade}</td>
+                    <td style="color:var(--text-muted)">${meta}</td>
+                    <td style="color:${diff >= 0 ? 'var(--pj)' : 'var(--primary)'}">${sinal}${diff}</td>
+                    <td><span class="badge" style="background:${cor}">${ating}%</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    init();
+</script>
+</body>
+</html>
