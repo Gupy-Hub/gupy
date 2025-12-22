@@ -3,51 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão - Controle de Produtividade</title>
+    <title>Gestão</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* PALETA PADRÃO */
         :root { 
-            --primary: #f87171; --bg: #f3f4f6; --nav: #1e293b; 
-            --card: #ffffff; --border: #e5e7eb; --text-main: #374151; --text-muted: #9ca3af;
+            --primary: #0045d0; --accent: #2662ea; --nav: #0d1b2a;
+            --bg: #f3f5f8; --card: #ffffff; --border: #e2e8f0;
+            --text-main: #1f2937; --text-muted: #64748b;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: var(--text-main); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 80px; color: var(--text-main); }
 
-        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 75px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .nav-left { display: flex; align-items: center; gap: 20px; }
-        .brand { cursor: pointer; line-height: 1.1; }
-        .brand .small { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: #cbd5e1; display: block; }
-        .brand .big { font-size: 1.1rem; font-weight: 700; color: white; }
-        
-        .nav-tools { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-tools select { background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; }
-        .nav-tools option { background: var(--nav); color: white; }
-
-        .nav-links { display: flex; gap: 25px; margin-left: 30px; }
-        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { color: white; font-weight: 600; }
-        .nav-item.active { border-bottom: 2px solid var(--primary); padding-bottom: 2px; }
-
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .nav-left { display: flex; align-items: center; gap: 40px; }
+        .brand .big { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: white; }
+        .brand .big span { color: var(--accent); }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.3s; padding-bottom: 23px; border-bottom: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { color: white; border-bottom-color: var(--accent); }
         .user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
-        .user-name { font-weight: 600; font-size: 0.85rem; color: white; display: block; }
-        .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; text-decoration: none; transition: 0.2s; }
-        .logout-btn:hover { color: white; }
+        .user-name { font-weight: 600; font-size: 0.85rem; color: white; }
+        .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; }
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .admin-card { background: var(--card); border-radius: 12px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 30px; }
+        .admin-card { background: var(--card); border-radius: 8px; padding: 40px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; color: var(--text-main); font-family: inherit; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; color: var(--text-main); font-family: inherit; }
         
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .btn-primary { background: var(--primary); color: white; }
         .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; margin-top: 30px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid var(--bg); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid var(--bg); font-size: 0.85rem; color: var(--text-main); }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--bg); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid var(--bg); font-size: 0.9rem; color: var(--text-main); }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -56,21 +47,12 @@
 <nav class="navbar">
     <div class="nav-left">
         <div class="brand" onclick="window.location.href='produtividade.html'">
-            <span class="small">controle de</span>
-            <div class="big">PRODUTIVIDADE</div>
-        </div>
-        <div class="nav-tools">
-            <select id="gestao-selector" onchange="alternarModulo()">
-                <option value="equipe">👥 Cadastro de Equipe</option>
-                <option value="metas">🎯 Configurar Metas</option>
-                <option value="lista">📋 Listagem Geral</option>
-                <option value="limpar">⚠️ Reiniciar Sistema</option>
-            </select>
+            <div class="big">PRODUTIVIDADE<span>.</span></div>
         </div>
         <div class="nav-links">
-            <a href="produtividade.html" class="nav-item">Dashboard</a>
-            <a href="performance.html" class="nav-item">Performance</a>
             <a href="gestao.html" class="nav-item active">Gestão</a>
+            <a href="produtividade.html" class="nav-item">Produtividade</a>
+            <a href="performance.html" class="nav-item">Performance</a>
             <a href="consolidado.html" class="nav-item">Consolidado</a>
         </div>
     </div>
@@ -82,11 +64,20 @@
 
 <div class="container">
     <div class="admin-card">
+        <div style="margin-bottom:30px; display:flex; gap:10px;">
+            <select id="gestao-selector" onchange="alternarModulo()">
+                <option value="equipe">👥 Cadastro de Equipe</option>
+                <option value="metas">🎯 Configurar Metas</option>
+                <option value="lista">📋 Listagem Geral</option>
+                <option value="limpar">⚠️ Reiniciar Sistema</option>
+            </select>
+        </div>
+
         <div id="mod-equipe">
-            <h2 style="margin-top:0; font-size:1.2rem; color:var(--nav)">Cadastrar Novo Colaborador</h2>
+            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Cadastrar Novo Colaborador</h2>
             <div class="form-group"><label>ID (Planilha)</label><input type="number" id="u-id"></div>
             <div class="form-group"><label>Nome Completo</label><input type="text" id="u-nome"></div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                 <div class="form-group"><label>Função</label><select id="u-fun"><option>Assistente</option><option>Auditora</option><option>Gestora</option></select></div>
                 <div class="form-group"><label>Contrato</label><select id="u-con"><option>CLT</option><option>PJ</option></select></div>
             </div>
@@ -94,7 +85,7 @@
         </div>
 
         <div id="mod-metas" class="hidden">
-            <h2 style="margin-top:0; font-size:1.2rem; color:var(--nav)">Definir Meta Diária</h2>
+            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Definir Meta Diária</h2>
             <div class="form-group"><label>Colaborador</label><select id="m-user"></select></div>
             <div class="form-group"><label>Valor da Meta</label><input type="number" id="m-val"></div>
             <div class="form-group"><label>Início da Vigência</label><input type="date" id="m-data"></div>
@@ -102,7 +93,7 @@
         </div>
 
         <div id="mod-lista" class="hidden">
-            <h2 style="margin-top:0; font-size:1.2rem; color:var(--nav)">Equipe Cadastrada</h2>
+            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Equipe Cadastrada</h2>
             <table id="tabela-equipe">
                 <thead><tr><th>ID</th><th>Nome</th><th>Contrato</th><th>Função</th></tr></thead>
                 <tbody></tbody>
@@ -110,7 +101,7 @@
         </div>
 
         <div id="mod-limpar" class="hidden" style="text-align:center;">
-            <h2 style="margin-top:0; font-size:1.2rem; color:#dc2626;">Apagar Dados de Importação</h2>
+            <h2 style="margin-top:0; font-size:1.3rem; color:#dc2626;">Zona de Perigo</h2>
             <p>Esta ação removerá permanentemente todas as produções enviadas via Excel.</p>
             <button class="btn btn-danger" onclick="limparBanco()">Limpar Banco de Produção</button>
         </div>
