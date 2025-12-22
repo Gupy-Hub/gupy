@@ -62,19 +62,22 @@
         .log-header h3 { margin: 0; color: var(--nav); font-size: 0.95rem; }
         
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        
         th { padding: 8px 10px; text-align: left; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); background: #fff; text-transform: uppercase; font-size: 0.7rem; }
         td { padding: 4px 10px; border-bottom: 1px solid var(--border); color: var(--text-main); height: 35px; vertical-align: middle; }
         
-        /* Inputs */
+        /* Inputs Compactos */
         .input-qty { width: 60px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: 600; color: var(--nav); font-family: 'Inter'; font-size: 0.85rem; transition: 0.2s; }
         .input-qty:focus { border-color: var(--accent); outline: none; background: #eff6ff; }
+        
+        /* Disabled Style (Gestora nao edita qtd) */
         .input-qty:disabled { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
         
         .input-divergent { border-color: var(--danger); color: var(--danger); background-color: #fee2e2; }
 
         .input-obs { width: 100%; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: 'Inter'; font-size: 0.8rem; color: var(--text-main); transition: 0.2s; box-sizing: border-box; }
         .input-obs:focus { border-color: var(--accent); outline: none; background: #fff; }
-        .input-obs:disabled { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
+        /* OBS é liberado para gestora, entao sem disabled aqui */
 
         .col-date { font-weight: 600; color: var(--nav); width: 90px; }
         .col-sys { width: 80px; text-align: center; font-weight: 700; color: var(--text-muted); background-color: #f8fafc; }
@@ -123,7 +126,7 @@
 
     <div class="top-controls">
         <div class="control-group hidden" id="manager-controls" style="flex: 2; border-right: 1px solid var(--border); padding-right: 15px;">
-            <label style="color:var(--primary);">👁️ Visualizar Colaborador (Modo Leitura)</label>
+            <label style="color:var(--primary);">👁️ Visualizar Colaborador (Gestão)</label>
             <select id="user-selector" onchange="carregarMeusDados()"></select>
         </div>
 
@@ -189,7 +192,7 @@
                     <th style="text-align:center">Minha Contagem</th>
                     <th style="text-align:center">Meta</th>
                     <th style="text-align:center">Status</th>
-                    <th>Anotações</th>
+                    <th>Anotações / Obs</th>
                 </tr>
             </thead>
             <tbody id="log-body"></tbody>
@@ -210,25 +213,23 @@
     document.getElementById('welcome-msg').innerText = `Olá, ${sessao.nome.split(' ')[0]}`;
     
     let myChart = null;
-    let targetUserId = sessao.id; // Por padrão, vê o próprio ID
+    let targetUserId = sessao.id; 
     const isGestora = sessao.funcao === 'Gestora';
 
     function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
 
     // --- INIT ---
     async function init() {
-        // Seletor de Ano
         const yearSel = document.getElementById('year-selector');
         const currentYear = new Date().getFullYear();
         for(let y = currentYear; y >= 2024; y--) yearSel.innerHTML += `<option value="${y}">${y}</option>`;
 
-        // Lógica de Gestora
         if (isGestora) {
             document.getElementById('manager-controls').classList.remove('hidden');
             document.getElementById('welcome-msg').innerText = `Painel da Gestora`;
-            await loadUsers(); // Carrega lista de assistentes
+            await loadUsers(); 
         } else {
-            atualizarOpcoesPeriodo(); // Inicia direto
+            atualizarOpcoesPeriodo(); 
         }
     }
 
@@ -236,14 +237,11 @@
         const { data: users } = await _supabase.from('usuarios').select('*').order('nome');
         const sel = document.getElementById('user-selector');
         
-        // Filtra para não mostrar outras gestoras, se desejar
         const assistentes = users.filter(u => u.funcao !== 'Gestora' && u.funcao !== 'Auditora');
-        
         assistentes.forEach(u => {
             sel.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
         });
         
-        // Seleciona o primeiro da lista e carrega
         if(assistentes.length > 0) {
             targetUserId = assistentes[0].id;
             atualizarOpcoesPeriodo();
@@ -301,14 +299,12 @@
 
     // --- CARREGAMENTO ---
     async function carregarMeusDados() {
-        // Se for gestora, pega o ID do select. Se não, usa o da sessão.
         if (isGestora) {
             targetUserId = document.getElementById('user-selector').value;
         }
 
         const { start, end } = getRangeDates();
         
-        // Busca Produção do ID ALVO
         const { data: producao } = await _supabase.from('producao')
             .select('*')
             .eq('usuario_id', targetUserId)
@@ -316,7 +312,6 @@
             .lte('data_referencia', end)
             .order('data_referencia');
 
-        // Busca Meta do ID ALVO
         const { data: metas } = await _supabase.from('metas')
             .select('*')
             .eq('usuario_id', targetUserId)
@@ -331,14 +326,17 @@
 
     // --- SALVAMENTO (AUTO-SAVE) ---
     async function atualizarDiario(input, dataRef, campo) {
-        // Se for Gestora, aborta (segurança extra, embora o input esteja disabled)
-        if (isGestora) return;
+        // SEGURANÇA: Se for Gestora tentando editar QUANTIDADE, bloqueia e alerta
+        if (isGestora && campo === 'quantidade_manual') {
+            alert("Ação não permitida! Apenas a assistente pode alterar sua contagem.");
+            input.value = input.defaultValue; // Reseta valor visual
+            return;
+        }
 
         let valor = input.value;
-        
         if(campo === 'quantidade_manual' && valor === '') valor = 0;
         
-        input.style.borderColor = '#fbbf24'; // Processando
+        input.style.borderColor = '#fbbf24'; 
 
         const { data: existente } = await _supabase.from('producao').select('id').eq('usuario_id', targetUserId).eq('data_referencia', dataRef).maybeSingle();
 
@@ -417,8 +415,8 @@
         start.setHours(12,0,0,0);
         end.setHours(12,0,0,0);
 
-        // Se for gestora, inputs ficam readonly
-        const disabledAttr = isGestora ? 'disabled' : '';
+        // Se for gestora, input QTD fica disabled (mas Obs liberado)
+        const disabledQty = isGestora ? 'disabled' : '';
 
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const dateStr = d.toISOString().split('T')[0];
@@ -462,14 +460,14 @@
                     <td class="col-sys">${qtdSys > 0 ? qtdSys.toLocaleString() : '-'}</td>
                     <td class="col-manual">
                         <input type="number" class="input-qty ${manualStyle}" value="${displayManual}" 
-                            placeholder="" ${disabledAttr}
+                            placeholder="" ${disabledQty}
                             onchange="atualizarDiario(this, '${dateStr}', 'quantidade_manual')">
                     </td>
                     <td class="col-meta">${statusBadge}</td>
                     <td class="col-ausencia">${ausenciaText}</td>
                     <td class="col-obs">
                         <input type="text" class="input-obs" value="${obs}" 
-                            placeholder="..." ${disabledAttr}
+                            placeholder="..." 
                             onchange="atualizarDiario(this, '${dateStr}', 'observacao')">
                     </td>
                 </tr>
