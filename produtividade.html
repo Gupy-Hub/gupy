@@ -3,78 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Controle de Produtividade</title>
+    <title>Produtividade</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- PALETA PASTEL SOFISTICADA --- */
+        /* --- IDENTITY GUPY STYLE --- */
         :root { 
-            --primary: #f87171; --clt: #60a5fa; --pj: #34d399; 
-            --fifo: #fbbf24; --gt: #a8a29e; --gp: #fb923c; --fc: #c084fc;
-            --bg: #f3f4f6; --nav: #1e293b; --header-dark: #334155; 
-            --card: #ffffff; --border: #e5e7eb; --text-main: #374151; --text-muted: #9ca3af;
-            --zebra-even: #e2e8f0; --zebra-hover: #cbd5e1;
+            /* Gupy Blues */
+            --primary: #0045d0;    /* Azul Institucional Forte */
+            --accent: #2662ea;     /* Azul Vibrante para botões/destaques */
+            --nav: #0d1b2a;        /* Azul Noite (Quase preto) para Navbar */
+            
+            /* Status Colors (Modern Tech) */
+            --success: #00d09e;    /* Verde Gupy */
+            --warning: #ffb700;
+            --danger: #ef4444;
+
+            /* Colunas */
+            --clt: #0077b6; --pj: #00b4d8; 
+            --fifo: #f59e0b; --gt: #6b7280; 
+            --gp: #8b5cf6; --fc: #ec4899;
+
+            /* UI */
+            --bg: #f3f5f8;         /* Fundo Gelo */
+            --card: #ffffff; 
+            --border: #e2e8f0;
+            --text-main: #1f2937;
+            --text-muted: #64748b;
+            
+            --zebra-even: #f8fafc;
+            --zebra-hover: #eff6ff; /* Leve azul no hover */
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 85px; color: var(--text-main); }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 80px; color: var(--text-main); }
 
-        /* NAVBAR PADRÃO */
-        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 75px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .nav-left { display: flex; align-items: center; gap: 20px; }
+        /* NAVBAR PREMIUM */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .nav-left { display: flex; align-items: center; gap: 40px; }
         .brand { cursor: pointer; line-height: 1.1; }
-        .brand .small { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: #cbd5e1; display: block; }
-        .brand .big { font-size: 1.1rem; font-weight: 700; color: white; }
+        .brand .big { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: white; }
+        .brand .big span { color: var(--accent); }
         
-        .nav-tools { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; font-family: 'Inter'; }
-        .nav-tools option { background: var(--nav); color: white; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.3s; padding-bottom: 23px; border-bottom: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { color: white; border-bottom-color: var(--accent); }
+
+        .nav-tools { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 6px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-tools select, .nav-tools input { background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 500; outline: none; cursor: pointer; }
+        .nav-tools option { background: var(--nav); }
+
+        /* AREA USUARIO */
+        .user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: center; }
+        .user-name { font-weight: 600; font-size: 0.85rem; color: white; }
+        .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; transition: 0.2s; }
         
-        .nav-links { display: flex; gap: 25px; margin-left: 30px; }
-        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { color: white; font-weight: 600; }
-        .nav-item.active { border-bottom: 2px solid var(--primary); padding-bottom: 2px; }
+        .btn-import { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(38, 98, 234, 0.2); }
+        .btn-import:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-        /* AREA DO USUARIO */
-        .user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; margin-left: 20px; }
-        .user-name { font-weight: 600; font-size: 0.85rem; color: white; display: block; }
-        .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; text-decoration: none; transition: 0.2s; }
-        .logout-btn:hover { color: white; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px; }
 
-        .btn-import { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
-        .btn-import:hover { filter: brightness(1.1); }
-
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .hidden { display: none !important; }
-
-        /* MINI PAINEL E TABELA */
-        .dynamic-panel { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 4px solid var(--nav); }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        /* MINI PAINEL REVISADO */
+        .dynamic-panel { background: var(--card); border-radius: 8px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid var(--border); border-top: 4px solid var(--primary); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .panel-header h2 { color: var(--nav); font-size: 1.1rem; margin: 0; font-weight: 700; }
+        
+        /* Grid Robusto */
         .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-        .panel-column { display: flex; flex-direction: column; gap: 20px; padding: 0 20px; border-right: 1px solid var(--border); }
+        .panel-column { display: flex; flex-direction: column; gap: 20px; padding: 0 25px; border-right: 1px solid var(--border); }
         .panel-column:last-child { border-right: none; }
+        
         .stat-row { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+        .stat-item { display: flex; flex-direction: column; }
         .stat-item.right { text-align: right; }
-        .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-        .value { font-size: 1.2rem; font-weight: 700; color: var(--nav); line-height: 1; }
-        .value.small-val { font-size: 1rem; opacity: 0.8; }
 
-        /* CLASSES DE COR */
+        .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 5px; letter-spacing: 0.5px; }
+        .value { font-size: 1.4rem; font-weight: 700; color: var(--nav); line-height: 1; }
+        .value.small-val { font-size: 1.1rem; opacity: 0.9; }
+
         .txt-clt { color: var(--clt); } .txt-pj { color: var(--pj); }
         .txt-fifo { color: var(--fifo); } .txt-gt { color: var(--gt); }
         .txt-gp { color: var(--gp); } .txt-fc { color: var(--fc); }
 
-        .table-wrap { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        /* TABELA */
+        .table-wrap { background: var(--card); border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 1100px; }
-        th { background: #f8fafc; padding: 12px 15px; text-align: left; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; border-bottom: 2px solid var(--border); }
-        td { padding: 10px 15px; border-bottom: 1px solid var(--border); color: var(--text-main); }
-        tbody tr.data-row:nth-child(even) { background-color: var(--zebra-even); }
-        tbody tr.data-row:hover { background-color: var(--zebra-hover); }
-        .divider-row { background: var(--header-dark) !important; }
-        .divider-row td { color: white !important; font-weight: 700; font-size: 0.85rem; padding: 10px 15px; border: none; }
-        .header-repeated th { background: #e5e7eb; color: #4b5563; border-bottom: 1px solid #d1d5db; font-size: 0.65rem; padding: 8px 15px; }
-        .badge { padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; color: white; display: inline-block; }
-        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; border-left: 5px solid var(--primary); display: none; min-width: 300px; }
+        th { background: #f8fafc; padding: 15px 20px; text-align: left; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        
+        tbody tr:nth-child(even) { background-color: var(--zebra-even); }
+        tbody tr:hover { background-color: var(--zebra-hover); }
+        
+        .divider-row { background: var(--nav) !important; }
+        .divider-row td { color: white !important; font-weight: 700; font-size: 0.85rem; padding: 10px 20px; }
+        
+        .header-repeated th { background: #e2e8f0; color: #475569; padding: 8px 20px; font-size: 0.65rem; border-bottom: 1px solid #cbd5e1; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.7rem; color: white; display: inline-block; }
+        .hidden { display: none !important; }
+        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; border-left: 5px solid var(--success); display: none; min-width: 300px; }
     </style>
 </head>
 <body>
@@ -82,35 +109,33 @@
 <nav class="navbar">
     <div class="nav-left">
         <div class="brand" onclick="location.reload()">
-            <span class="small">controle de</span>
-            <div class="big">PRODUTIVIDADE</div>
-        </div>
-        <div class="nav-tools">
-            <select id="view-selector" onchange="ajustarSeletores()">
-                <option value="dia">🔍 Análise Detalhada (Dia)</option>
-                <option value="semana">📅 Visão Semanal</option>
-                <option value="mes">📊 Consolidado Mensal</option>
-            </select>
-            <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
-            <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()">
-            <input type="date" id="select-dia" onchange="carregarDados()">
-            <select id="select-semana" class="hidden" onchange="alternarVisao()">
-                <option value="1">Semana 1</option><option value="2">Semana 2</option>
-                <option value="3">Semana 3</option><option value="4">Semana 4</option><option value="5">Semana 5</option>
-            </select>
+            <div class="big">PRODUTIVIDADE<span>.</span></div>
         </div>
         <div class="nav-links">
-            <a href="produtividade.html" class="nav-item active">Dashboard</a>
-            <a href="performance.html" class="nav-item">Performance</a>
             <a href="gestao.html" class="nav-item">Gestão</a>
+            <a href="produtividade.html" class="nav-item active">Produtividade</a>
+            <a href="performance.html" class="nav-item">Performance</a>
             <a href="consolidado.html" class="nav-item">Consolidado</a>
         </div>
     </div>
-    <div style="display:flex; align-items:center;">
-        <button class="btn-import" onclick="document.getElementById('excel-files').click()">📥 Importar Planilhas</button>
+    <div style="display:flex; align-items:center; gap:20px;">
+        <div class="nav-tools">
+            <select id="view-selector" onchange="ajustarSeletores()">
+                <option value="dia">🔍 Dia</option>
+                <option value="semana">📅 Semana</option>
+                <option value="mes">📊 Mês</option>
+            </select>
+            <div style="width:1px; height:15px; background:rgba(255,255,255,0.3);"></div>
+            <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()">
+            <input type="date" id="select-dia" onchange="carregarDados()">
+            <select id="select-semana" class="hidden" onchange="alternarVisao()">
+                <option value="1">Sem 1</option><option value="2">Sem 2</option><option value="3">Sem 3</option><option value="4">Sem 4</option><option value="5">Sem 5</option>
+            </select>
+        </div>
+        <button class="btn-import" onclick="document.getElementById('excel-files').click()">Importar</button>
         <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
         <div class="user-area">
-            <span id="user-display" class="user-name">Carregando...</span>
+            <span id="user-display" class="user-name">Usuário</span>
             <span class="logout-btn" onclick="logout()">Sair</span>
         </div>
     </div>
@@ -120,12 +145,12 @@
     <div id="panel-contexto" class="dynamic-panel">
         <div class="panel-header">
             <h2 id="panel-titulo">Visão Geral</h2>
-            <span id="panel-info-extra" style="font-size:0.75rem; color: var(--text-muted);">-</span>
+            <span id="panel-info-extra" style="font-size:0.75rem; color: var(--text-muted); font-weight:600;">-</span>
         </div>
         <div class="panel-grid">
             <div class="panel-column">
                 <div class="stat-row"><div class="stat-item"><span class="label">Total Geral</span><span class="value" id="p-total">0</span></div><div class="stat-item right"><span class="label">Média Time</span><span class="value small-val" id="p-media">0</span></div></div>
-                <div class="stat-row"><div class="stat-item"><span class="label">Total Assistentes</span><span class="value" id="p-headcount">0</span></div><div class="stat-item right"><span class="label">Dias Trabalhados</span><span class="value small-val" id="p-dias">0</span></div></div>
+                <div class="stat-row"><div class="stat-item"><span class="label">Assistentes</span><span class="value" id="p-headcount">0</span></div><div class="stat-item right"><span class="label">Dias Trab.</span><span class="value small-val" id="p-dias">0</span></div></div>
             </div>
             <div class="panel-column">
                 <div class="stat-row"><div class="stat-item"><span class="label">Total CLT</span><span class="value txt-clt" id="p-clt">0</span></div><div class="stat-item right"><span class="label">Média CLT</span><span class="value small-val txt-clt" id="p-clt-media">0</span></div></div>
@@ -153,7 +178,7 @@
 </div>
 
 <div id="import-log">
-    <h4 style="margin:0 0 10px 0; font-size:0.9rem;">📢 Relatório de Importação</h4>
+    <h4 style="margin:0 0 10px 0; font-size:0.9rem; color:var(--nav);">📢 Status da Importação</h4>
     <div id="log-content" style="font-size:0.8rem; line-height:1.5; color: var(--text-muted);"></div>
     <button onclick="this.parentElement.style.display='none'" style="margin-top:15px; width:100%; padding:10px; border:none; background:var(--nav); color:white; cursor:pointer; border-radius:6px; font-weight:600;">Fechar</button>
 </div>
@@ -164,7 +189,6 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     let dadosGlobais = [], metasGlobais = [];
 
-    // Sessão
     const sessao = JSON.parse(localStorage.getItem('usuario'));
     if(!sessao) window.location.href = 'index.html';
     document.getElementById('user-display').innerText = sessao.nome;
@@ -259,7 +283,7 @@
     }
 
     function renderizarTabela(dados, isDia) {
-        const headerHTML = `<tr class="header-repeated"><th>Assistente</th><th style="text-align:center; color:#f87171">Produção</th><th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th><th>Acum. Sem.</th><th>Acum. Mês</th><th>Média Sem.</th><th>Média Mês</th><th>Status</th></tr>`;
+        const headerHTML = `<tr class="header-repeated"><th>Assistente</th><th style="text-align:center; color:var(--primary)">Produção</th><th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th><th>Acum. Sem.</th><th>Acum. Mês</th><th>Média Sem.</th><th>Média Mês</th><th>Status</th></tr>`;
         let html = '', lastD = '';
         if(dados.length === 0) { document.getElementById('tabela-corpo').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#9ca3af;">Nenhum dado encontrado.</td></tr>'; return; }
         dados.forEach(p => {
@@ -268,8 +292,8 @@
             const meta = metasGlobais.filter(m => m.usuario_id == p.usuario_id && m.data_inicio <= p.data_referencia).sort((a,b)=>b.id-a.id)[0];
             const metaV = meta ? meta.valor_meta : 0;
             const ating = metaV > 0 ? ((p.quantidade / metaV)*100).toFixed(0) : 0;
-            const corB = ating >= 100 ? '#34d399' : '#f87171';
-            html += `<tr class="data-row"><td><b>${p.usuarios?.nome || p.usuario_id}</b></td><td style="text-align:center; color:#f87171; font-weight:700">${p.quantidade}</td><td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td><td>${p.stats_acum_sem || '-'}</td><td>${p.stats_acum_mes || '-'}</td><td>${p.stats_media_sem || '-'}</td><td>${p.stats_media_mes || '-'}</td><td><span class="badge" style="background:${corB}">${ating}%</span></td></tr>`;
+            const corB = ating >= 100 ? 'var(--success)' : 'var(--danger)';
+            html += `<tr class="data-row"><td><b>${p.usuarios?.nome || p.usuario_id}</b></td><td style="text-align:center; color:var(--primary); font-weight:700">${p.quantidade}</td><td>${p.fifo}</td><td>${p.gradual_total}</td><td>${p.gradual_parcial}</td><td>${p.perfil_fc}</td><td>${p.stats_acum_sem || '-'}</td><td>${p.stats_acum_mes || '-'}</td><td>${p.stats_media_sem || '-'}</td><td>${p.stats_media_mes || '-'}</td><td><span class="badge" style="background:${corB}">${ating}%</span></td></tr>`;
         });
         document.getElementById('tabela-corpo').innerHTML = html;
     }
