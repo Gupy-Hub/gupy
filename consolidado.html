@@ -153,7 +153,7 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    const FIXED_HEADCOUNT = 17; // Regra de Ouro
+    const FIXED_HEADCOUNT = 17; // Regra de Ouro: Sempre dividir por 17
 
     const sessao = JSON.parse(localStorage.getItem('usuario'));
     if(!sessao) window.location.href = 'index.html';
@@ -251,7 +251,6 @@
             .lte('data_referencia', end);
 
         if(!dados || dados.length === 0) {
-            // SEM ALERT
             zerarPainel();
             document.getElementById('table-body').innerHTML = '<tr><td colspan="100%" style="text-align:center; padding:30px; color:#64748b;">Nenhum dado encontrado para o período selecionado.</td></tr>';
             document.getElementById('table-header').innerHTML = '<th>Indicadores</th><th>-</th>';
@@ -306,6 +305,8 @@
 
         dados.forEach(d => {
             if(!d.usuario_id || !d.usuarios) return;
+            
+            // TRAVA DE SEGURANÇA: Só conta se for Assistente
             if(d.usuarios.funcao !== 'Assistente') return;
 
             const b = getBucket(d.data_referencia, type);
@@ -352,10 +353,19 @@
                 } else {
                     const dias = s.dias.size || 1;
                     if(key === 'validacao_diaria') val = (s.total / dias);
-                    else if(key === 'media_assistente') val = (s.total / FIXED_HEADCOUNT); 
-                    else if(key === 'media_validacao_assistente') val = (s.total / dias / FIXED_HEADCOUNT); 
-                    else if(key === 'clt_media') val = s.totalCLT / dias / (s.assistentesCLT.size || 1);
-                    else if(key === 'pj_media') val = s.totalPJ / dias / (s.assistentesPJ.size || 1);
+                    else if(key === 'media_assistente') val = (s.total / FIXED_HEADCOUNT); // REGRA DO 17
+                    else if(key === 'media_validacao_assistente') val = (s.total / dias / FIXED_HEADCOUNT); // REGRA DO 17
+                    
+                    // CLT
+                    else if(key === 'clt_media') {
+                        const hC = s.assistentesCLT.size || 1;
+                        val = (s.totalCLT / dias / hC);
+                    }
+                    // PJ
+                    else if(key === 'pj_media') {
+                        const hP = s.assistentesPJ.size || 1;
+                        val = (s.totalPJ / dias / hP);
+                    }
                 }
                 tr += `<td>${Math.round(val || 0).toLocaleString()}</td>`;
             });
