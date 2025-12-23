@@ -2,419 +2,124 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consolidado</title>
-    
-    <link rel="icon" href="assets/img/logo.png" type="image/png">
+    <link rel="icon" href="assets/img/favicon.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="assets/css/style.css">
-    
     <style>
-        /* Ajustes específicos de tabela larga */
-        th:first-child { position: sticky; left: 0; background: var(--nav); color: white; z-index: 10; width: 280px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        td:first-child { position: sticky; left: 0; background: #f8fafc; z-index: 5; border-right: 2px solid var(--border); font-weight: 700; text-align: left; color: var(--nav); box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-        
-        .row-highlight td { background-color: #dcfce7 !important; color: #166534; font-weight: 700; }
-        .row-total-main td { font-weight: 800; color: var(--primary); border-top: 2px solid var(--border); background-color: #eff6ff !important; }
-        .row-sub-header td { background-color: #e2e8f0 !important; font-weight: 800; color: var(--text-muted); text-align: left; letter-spacing: 1px; font-size: 0.7rem; padding-top: 15px; }
-        
-        /* Loading */
-        .loading-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:50; font-weight:600; color:var(--primary); }
+        .loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.8);display:none;justify-content:center;align-items:center;z-index:50;}
+        .row-total-main td{background-color:#eff6ff!important;font-weight:800;color:var(--primary);}
+        .row-sub-header td{background-color:#e2e8f0!important;font-weight:800;color:var(--text-muted);font-size:0.7rem;letter-spacing:1px;padding-top:15px;}
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="top-controls">
-        <div class="control-group">
-            <label>Visão</label>
-            <select id="period-type" onchange="atualizarOpcoes()">
-                <option value="dia">Dia Específico</option>
-                <option value="mes" selected>Mensal (Semanas)</option>
-                <option value="trimestre">Trimestral</option>
-                <option value="semestre">Semestral</option>
-                <option value="ano_mes">Anual (Meses)</option>
-                <option value="ano_tri">Anual (Trimestres)</option>
-            </select>
-        </div>
-        <div class="control-group" id="group-year">
-            <label>Ano</label>
-            <select id="year-selector" onchange="atualizarOpcoes()"></select>
-        </div>
-        <div class="control-group" style="flex:1.5">
-            <label id="dynamic-label">Período</label>
-            <select id="period-value" onchange="carregarRelatorio()"></select>
-            <input type="date" id="date-picker" class="hidden" onchange="carregarRelatorio()">
-        </div>
+        <div class="control-group"><label>Visão</label><select id="period-type" onchange="upd()"><option value="mes">Mensal</option><option value="dia">Dia</option><option value="trimestre">Trimestral</option><option value="semestre">Semestral</option><option value="ano_mes">Anual</option></select></div>
+        <div class="control-group" id="grp-yr"><label>Ano</label><select id="year-selector" onchange="upd()"></select></div>
+        <div class="control-group" style="flex:1.5"><label>Período</label><select id="period-value" onchange="load()"></select><input type="date" id="date-picker" class="hidden" onchange="load()"></div>
     </div>
-
-    <div class="dynamic-panel" style="background:var(--card); padding:20px; border-radius:8px; margin-bottom:20px; border-top:4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position:relative;">
-        <div class="loading-overlay" id="loading">Carregando dados...</div>
-        
-        <div class="panel-header" style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-            <h2 id="panel-title" style="margin:0; font-size:1.1rem; color:var(--nav);">Resumo Geral</h2>
-        </div>
-        
+    <div class="dynamic-panel" style="background:var(--card);padding:20px;border-radius:8px;margin-bottom:20px;border-top:4px solid var(--primary);position:relative;">
+        <div class="loading-overlay" id="loading">Carregando...</div>
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Produzido</div>
-                <div class="stat-value" id="p-total">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Média do Time</div>
-                <div class="stat-value" id="p-media-time">0</div>
-            </div>
-            <div class="stat-card" style="border-left: 4px solid var(--warning);">
-                <div class="stat-label">Média/Assistente (Base 17)</div>
-                <div class="stat-value" id="p-media-ind">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Assistentes Ativos</div>
-                <div class="stat-value" id="p-headcount">0</div>
-            </div>
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="p-total">0</div></div>
+            <div class="stat-card"><div class="stat-label">Média Time</div><div class="stat-value" id="p-media-time">0</div></div>
+            <div class="stat-card" style="border-left:4px solid var(--warning)"><div class="stat-label">Média/Assist (17)</div><div class="stat-value" id="p-media-ind">0</div></div>
+            <div class="stat-card"><div class="stat-label">Ativos</div><div class="stat-value" id="p-headcount">0</div></div>
         </div>
     </div>
-
-    <div class="table-card" style="overflow-x:auto; position:relative; min-height:200px;">
+    <div class="table-card" style="overflow-x:auto;position:relative;min-height:200px;">
         <div class="loading-overlay" id="loading-table">Calculando...</div>
-        <table id="main-table">
-            <thead>
-                <tr id="table-header">
-                    <th>Indicadores</th>
-                    </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+        <table id="main-table"><thead><tr id="table-header"><th>Indicadores</th></tr></thead><tbody id="table-body"></tbody></table>
     </div>
 </div>
-
 <script src="assets/js/config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/layout.js"></script>
-
 <script>
-    // --- CONSTANTES ---
-    const FIXED_HEADCOUNT = 17; // Regra de negócio fixa
-
-    // --- INICIALIZAÇÃO ---
-    document.addEventListener('DOMContentLoaded', () => {
-        init();
-    });
-
-    function init() {
-        const yearSel = document.getElementById('year-selector');
-        const currentYear = new Date().getFullYear();
-        
-        // Preenche Anos
-        yearSel.innerHTML = '';
-        for(let y = currentYear; y >= 2024; y--) {
-            yearSel.innerHTML += `<option value="${y}">${y}</option>`;
-        }
-        
-        atualizarOpcoes(); // Dispara a configuração inicial
+    const HEAD_FIXED=17;
+    document.addEventListener('DOMContentLoaded', init);
+    function init(){ const y=document.getElementById('year-selector'), cy=new Date().getFullYear(); y.innerHTML=''; for(let i=cy; i>=2024; i--) y.innerHTML+=`<option value="${i}">${i}</option>`; upd(); }
+    function upd(){ 
+        const t=document.getElementById('period-type').value, v=document.getElementById('period-value'), d=document.getElementById('date-picker'), g=document.getElementById('grp-yr');
+        v.innerHTML=''; v.classList.remove('hidden'); d.classList.add('hidden'); g.style.visibility='visible';
+        if(t==='dia'){ v.classList.add('hidden'); d.classList.remove('hidden'); g.style.visibility='hidden'; if(!d.value)d.value=new Date().toISOString().split('T')[0]; }
+        else if(t==='mes') ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].forEach((m,i)=>v.innerHTML+=`<option value="${i+1}" ${i===new Date().getMonth()?'selected':''}>${m}</option>`);
+        else if(t==='trimestre') v.innerHTML='<option value="1">1º Tri</option><option value="2">2º Tri</option><option value="3">3º Tri</option><option value="4">4º Tri</option>';
+        else if(t==='semestre') v.innerHTML='<option value="1">1º Sem</option><option value="2">2º Sem</option>';
+        else v.innerHTML='<option value="1">Ano Completo</option>';
+        load();
     }
+    async function load(){
+        const t=document.getElementById('period-type').value, y=document.getElementById('year-selector').value, val=parseInt(document.getElementById('period-value').value);
+        let s='', e='';
+        if(t==='dia') s=e=document.getElementById('date-picker').value;
+        else if(t==='mes'){ s=`${y}-${val.toString().padStart(2,'0')}-01`; e=`${y}-${val.toString().padStart(2,'0')}-${new Date(y,val,0).getDate()}`; }
+        else if(t==='trimestre'){ const m=((val-1)*3)+1; s=`${y}-${m.toString().padStart(2,'0')}-01`; e=`${y}-${(m+2).toString().padStart(2,'0')}-${new Date(y,m+2,0).getDate()}`; }
+        else if(t==='semestre'){ s=val===1?`${y}-01-01`:`${y}-07-01`; e=val===1?`${y}-06-30`:`${y}-12-31`; }
+        else { s=`${y}-01-01`; e=`${y}-12-31`; }
 
-    // --- CONTROLE DE UI ---
-    function atualizarOpcoes() {
-        const type = document.getElementById('period-type').value;
-        const valSel = document.getElementById('period-value');
-        const datePicker = document.getElementById('date-picker');
-        const groupYear = document.getElementById('group-year');
-        const label = document.getElementById('dynamic-label');
-
-        // Reset visual
-        valSel.innerHTML = '';
-        valSel.classList.remove('hidden');
-        datePicker.classList.add('hidden');
-        groupYear.style.visibility = 'visible';
-
-        const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        const mesAtual = new Date().getMonth();
-
-        if(type === 'dia') {
-            valSel.classList.add('hidden');
-            datePicker.classList.remove('hidden');
-            groupYear.style.visibility = 'hidden';
-            label.innerText = 'Selecione o Dia';
-            if(!datePicker.value) datePicker.value = new Date().toISOString().substring(0, 10);
-        } 
-        else if(type === 'mes') {
-            label.innerText = 'Selecione o Mês';
-            meses.forEach((m, i) => {
-                // Seleciona o mês atual por padrão
-                const isSelected = i === mesAtual ? 'selected' : '';
-                valSel.innerHTML += `<option value="${i+1}" ${isSelected}>${m}</option>`;
-            });
-        } 
-        else if(type === 'trimestre') {
-            label.innerText = 'Selecione o Trimestre';
-            valSel.innerHTML = `
-                <option value="1">1º Tri (Jan-Mar)</option>
-                <option value="2">2º Tri (Abr-Jun)</option>
-                <option value="3">3º Tri (Jul-Set)</option>
-                <option value="4">4º Tri (Out-Dez)</option>`;
-        } 
-        else if(type === 'semestre') {
-            label.innerText = 'Selecione o Semestre';
-            valSel.innerHTML = `
-                <option value="1">1º Sem (Jan-Jun)</option>
-                <option value="2">2º Sem (Jul-Dez)</option>`;
-        } 
-        else if(type === 'ano_mes') {
-            label.innerText = 'Visualização';
-            valSel.innerHTML = `<option value="1">Ano Completo (Mensal)</option>`;
-        } else {
-            label.innerText = 'Visualização';
-            valSel.innerHTML = `<option value="1">Ano Completo (Trimestral)</option>`;
-        }
+        document.getElementById('loading').style.display='flex'; document.getElementById('loading-table').style.display='flex';
+        const {data:d}=await _supabase.from('producao').select('*,usuarios(funcao,contrato)').gte('data_referencia',s).lte('data_referencia',e);
+        document.getElementById('loading').style.display='none'; document.getElementById('loading-table').style.display='none';
         
-        carregarRelatorio();
-    }
-
-    function getRange() {
-        const type = document.getElementById('period-type').value;
-        const year = document.getElementById('year-selector').value;
-        let start='', end='';
-
-        if(type === 'dia') {
-            start = end = document.getElementById('date-picker').value;
-        } else if(type === 'mes') {
-            const m = document.getElementById('period-value').value;
-            // Pega o último dia do mês corretamente
-            start = `${year}-${m.toString().padStart(2,'0')}-01`;
-            end = `${year}-${m.toString().padStart(2,'0')}-${new Date(year, m, 0).getDate()}`;
-        } else if(type === 'trimestre') {
-            const t = parseInt(document.getElementById('period-value').value);
-            const mStart = (t-1)*3 + 1;
-            const mEnd = mStart + 2;
-            start = `${year}-${mStart.toString().padStart(2,'0')}-01`;
-            end = `${year}-${mEnd.toString().padStart(2,'0')}-${new Date(year, mEnd, 0).getDate()}`;
-        } else if(type === 'semestre') {
-            const s = parseInt(document.getElementById('period-value').value);
-            start = s===1 ? `${year}-01-01` : `${year}-07-01`;
-            end = s===1 ? `${year}-06-30` : `${year}-12-31`;
-        } else {
-            start = `${year}-01-01`; 
-            end = `${year}-12-31`;
-        }
-        return { start, end, type };
-    }
-
-    // --- CARREGAMENTO DE DADOS ---
-    async function carregarRelatorio() {
-        const { start, end, type } = getRange();
-        if(!start) return;
-
-        // Feedback Visual
-        document.getElementById('loading').style.display = 'flex';
-        document.getElementById('loading-table').style.display = 'flex';
-
-        // Atualiza Título
-        let titulo = '';
-        if(type === 'dia') titulo = `Resumo do dia ${start.split('-').reverse().join('/')}`;
-        else titulo = `Consolidado ${document.getElementById('year-selector').value}`;
-        document.getElementById('panel-title').innerText = titulo;
-
-        // Busca no Supabase
-        const { data: dados, error } = await _supabase
-            .from('producao')
-            .select('*, usuarios(funcao, contrato)')
-            .gte('data_referencia', start)
-            .lte('data_referencia', end);
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('loading-table').style.display = 'none';
-
-        if(error) {
-            console.error(error);
-            alert('Erro ao buscar dados.');
-            return;
-        }
-
-        if(!dados || dados.length === 0) {
-            zerarPainel();
-            document.getElementById('table-body').innerHTML = '<tr><td colspan="100%" style="text-align:center; padding:30px; color:#64748b;">Nenhum dado encontrado para o período selecionado.</td></tr>';
-            document.getElementById('table-header').innerHTML = '<th>Indicadores</th><th>-</th>';
-            return;
-        }
-
-        processarTabela(dados, type);
-    }
-
-    // --- MOTOR DE CÁLCULO ---
-    function getBucket(dateStr, type) {
-        // Converte string YYYY-MM-DD para data segura
-        const date = new Date(dateStr + 'T12:00:00');
+        if(!d||!d.length){ ['p-total','p-media-time','p-media-ind','p-headcount'].forEach(x=>document.getElementById(x).innerText='0'); document.getElementById('table-body').innerHTML='<tr><td colspan="20" style="text-align:center">Sem dados</td></tr>'; return; }
         
-        if(type === 'dia') return 1;
-        
-        if(type === 'mes') { 
-            // Calcula a semana do mês
-            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-            const week = Math.ceil((date.getDate() + firstDay.getDay()) / 7);
-            return week; // Retorna 1, 2, 3, 4, 5 ou 6
-        }
-        
-        if(type === 'trimestre') return (date.getMonth() % 3) + 1; // 1 a 3
-        if(type === 'semestre') return (date.getMonth() % 6) + 1; // 1 a 6
-        if(type === 'ano_tri') return Math.floor(date.getMonth() / 3) + 1; // 1 a 4
-        if(type === 'ano_mes') return date.getMonth() + 1; // 1 a 12
-        
-        return 1;
-    }
+        let cols=[], numCols=0;
+        if(t==='dia') cols=['Dia']; else if(t==='mes') cols=['S1','S2','S3','S4','S5']; else if(t==='trimestre') cols=['M1','M2','M3']; else if(t==='semestre') cols=['M1','M2','M3','M4','M5','M6']; else cols=['Total'];
+        numCols=cols.length;
 
-    function getColumnNames(type) {
-        if(type === 'dia') return ['Dia Selecionado'];
-        // Garantimos 5 colunas para o mês. Se houver semana 6, somamos na 5.
-        if(type === 'mes') return ['Semana 1','Semana 2','Semana 3','Semana 4','Semana 5'];
-        
-        const mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        
-        if(type === 'trimestre') {
-            const t = parseInt(document.getElementById('period-value').value);
-            const start = (t-1)*3;
-            return [mNames[start], mNames[start+1], mNames[start+2]];
-        }
-        if(type === 'semestre') {
-            const s = parseInt(document.getElementById('period-value').value);
-            return s===1 ? mNames.slice(0,6) : mNames.slice(6,12);
-        }
-        if(type === 'ano_tri') return ['1º Tri','2º Tri','3º Tri','4º Tri'];
-        if(type === 'ano_mes') return mNames;
-        
-        return ['Total'];
-    }
+        let st={}; for(let i=1;i<=numCols;i++) st[i]={a:new Set(),ac:new Set(),ap:new Set(),d:new Set(),t:0,tc:0,tp:0,fifo:0,gt:0,gp:0,fc:0}; st[99]={a:new Set(),ac:new Set(),ap:new Set(),d:new Set(),t:0,tc:0,tp:0,fifo:0,gt:0,gp:0,fc:0};
 
-    function createEmptyStat() {
-        return { 
-            assistentes: new Set(), 
-            assistentesCLT: new Set(), 
-            assistentesPJ: new Set(), 
-            dias: new Set(), 
-            fifo:0, gt:0, gp:0, fc:0, total:0, totalCLT:0, totalPJ:0 
-        };
-    }
-
-    function processarTabela(dados, type) {
-        const cols = getColumnNames(type);
-        const numCols = cols.length; // Ex: Mês = 5
-        let stats = {};
-        
-        // Inicializa buckets para cada coluna + totalizador (99)
-        for(let i=1; i<=numCols; i++) stats[i] = createEmptyStat();
-        stats[99] = createEmptyStat(); 
-
-        dados.forEach(d => {
-            // Filtra: Tem que ter usuário e ser Assistente
-            if(!d.usuario_id || !d.usuarios) return;
-            if(d.usuarios.funcao !== 'Assistente') return;
+        d.forEach(r=>{
+            if(!r.usuarios||r.usuarios.funcao!=='Assistente')return;
+            let b=1; const dt=new Date(r.data_referencia+'T12:00:00');
+            if(t==='mes') b=Math.ceil((dt.getDate()+new Date(dt.getFullYear(),dt.getMonth(),1).getDay())/7);
+            else if(t==='trimestre') b=(dt.getMonth()%3)+1;
+            else if(t==='semestre') b=(dt.getMonth()%6)+1;
             
-            let b = getBucket(d.data_referencia, type);
-            
-            // PROTEÇÃO CONTRA ESTOURO DE COLUNAS
-            // Se for semana 6, joga na semana 5
-            if(b > numCols) b = numCols;
-            
-            // Adiciona ao bucket específico (b) e ao totalizador (99)
-            [b, 99].forEach(idx => {
-                const s = stats[idx];
-                s.assistentes.add(d.usuario_id);
-                s.dias.add(d.data_referencia);
-                s.fifo += (d.fifo || 0); 
-                s.gt += (d.gradual_total || 0); 
-                s.gp += (d.gradual_parcial || 0); 
-                s.fc += (d.perfil_fc || 0); 
-                s.total += (d.quantidade || 0);
-                
-                if(d.usuarios.contrato && d.usuarios.contrato.includes('CLT')) { 
-                    s.assistentesCLT.add(d.usuario_id); s.totalCLT += (d.quantidade || 0); 
-                } else { 
-                    s.assistentesPJ.add(d.usuario_id); s.totalPJ += (d.quantidade || 0); 
-                }
+            if(b>numCols) b=numCols;
+            [b,99].forEach(k=>{
+                const x=st[k]; x.a.add(r.usuario_id); x.d.add(r.data_referencia);
+                x.t+=r.quantidade; x.fifo+=r.fifo; x.gt+=r.gradual_total; x.gp+=r.gradual_parcial; x.fc+=r.perfil_fc;
+                if(r.usuarios.contrato && r.usuarios.contrato.includes('CLT')){ x.ac.add(r.usuario_id); x.tc+=r.quantidade; }
+                else{ x.ap.add(r.usuario_id); x.tp+=r.quantidade; }
             });
         });
 
-        // --- RENDERIZAÇÃO DA TABELA ---
-        const hRow = document.getElementById('table-header');
-        hRow.innerHTML = '<th>Indicadores</th>' + cols.map(c => `<th>${c}</th>`).join('') + '<th>Total Período</th>';
-        
-        const colIndices = []; 
-        for(let i=1; i<=numCols; i++) colIndices.push(i); 
-        colIndices.push(99); // Índice do total
+        const hRow=document.getElementById('table-header'); hRow.innerHTML='<th>Indicadores</th>'+cols.map(c=>`<th>${c}</th>`).join('')+'<th>Total</th>';
+        const idxs=[]; for(let i=1;i<=numCols;i++)idxs.push(i); idxs.push(99);
 
-        // Função auxiliar para criar linhas
-        const createRow = (label, key, isCalc = false, highlight = false, isMainTotal = false) => {
-            let tr = `<tr class="${highlight ? 'row-highlight' : ''} ${isMainTotal ? 'row-total-main' : ''}"><td>${label}</td>`;
-            
-            colIndices.forEach(idx => {
-                const s = stats[idx];
-                let val = 0;
-                
-                if(!isCalc) {
-                    // Valores diretos (Somas ou Contagens)
-                    if(key === 'assistentes') val = s.assistentes.size;
-                    else if(key === 'dias') val = s.dias.size;
-                    else val = s[key];
+        const row=(lbl,k,calc,high,main)=>{
+            let tr=`<tr class="${high?'row-highlight':''} ${main?'row-total-main':''}"><td>${lbl}</td>`;
+            idxs.forEach(i=>{
+                const s=st[i], d=s.d.size||1, hReal=s.a.size||1, hFix=HEAD_FIXED, hC=s.ac.size||1, hP=s.ap.size||1;
+                let v=0;
+                if(!calc){ 
+                    if(k==='assist') v=s.a.size; else if(k==='dias') v=s.d.size; else v=s[k]; 
                 } else {
-                    // Valores Calculados (Médias)
-                    const dias = s.dias.size || 1;
-                    const headReal = s.assistentes.size || 1;
-                    const headFixed = FIXED_HEADCOUNT;
-
-                    if(key === 'validacao_diaria') val = (s.total / dias);
-                    else if(key === 'media_assistente') val = (s.total / headFixed); 
-                    else if(key === 'media_validacao_assistente') val = (s.total / dias / headFixed); 
-                    else if(key === 'clt_media') val = s.totalCLT / dias / (s.assistentesCLT.size || 1);
-                    else if(key === 'pj_media') val = s.totalPJ / dias / (s.assistentesPJ.size || 1);
+                    if(k==='med_dia') v=s.t/d; else if(k==='med_ass') v=s.t/hFix; else if(k==='med_dia_ass') v=s.t/d/hFix;
+                    else if(k==='med_clt') v=s.tc/d/hC; else if(k==='med_pj') v=s.tp/d/hP;
                 }
-                
-                // Formata número (sem decimais e com separador de milhar)
-                tr += `<td>${Math.round(val || 0).toLocaleString()}</td>`;
+                tr+=`<td>${Math.round(v||0).toLocaleString()}</td>`;
             });
-            tr += '</tr>';
-            return tr;
+            return tr+'</tr>';
         };
 
-        let html = '';
-        html += createRow('Total de assistentes ativos', 'assistentes');
-        html += createRow('Dias trabalhados', 'dias');
-        html += createRow('Total FIFO', 'fifo');
-        html += createRow('Total Gradual Parcial', 'gp');
-        html += createRow('Total Gradual Total', 'gt');
-        html += createRow('Total Perfil FC', 'fc');
+        let h='';
+        h+=row('Ativos','assist'); h+=row('Dias','dias'); h+=row('FIFO','fifo'); h+=row('G. Parcial','gp'); h+=row('G. Total','gt'); h+=row('Perfil FC','fc');
+        h+=row('Total Validados','t',0,0,1); h+=row('Média Diária (Time)','med_dia',1);
+        h+=row(`Média/Assist (Base ${HEAD_FIXED})`,'med_ass',1); h+=row(`Média Diária/Assist (Base ${HEAD_FIXED})`,'med_dia_ass',1,1);
+        h+=`<tr class="row-sub-header"><td colspan="${numCols+2}">CLT</td></tr>` + row('Produção','tc') + row('Média Diária/Pessoa','med_clt',1);
+        h+=`<tr class="row-sub-header"><td colspan="${numCols+2}">PJ</td></tr>` + row('Produção','tp') + row('Média Diária/Pessoa','med_pj',1);
         
-        html += createRow('Total de documentos validados', 'total', false, false, true); 
-        html += createRow('Total validação diária (Dias úteis)', 'validacao_diaria', true);
-        
-        html += createRow(`Média por Assistente (Base ${FIXED_HEADCOUNT})`, 'media_assistente', true);
-        html += createRow(`Média Diária por Assistente (Base ${FIXED_HEADCOUNT})`, 'media_validacao_assistente', true, true); 
-        
-        // Seção CLT
-        html += `<tr class="row-sub-header"><td colspan="${numCols + 2}">ANÁLISE CLT</td></tr>`;
-        html += createRow('CLT - Total Produção', 'totalCLT');
-        html += createRow('CLT - Média Diária por Pessoa', 'clt_media', true);
-        
-        // Seção PJ
-        html += `<tr class="row-sub-header"><td colspan="${numCols + 2}">ANÁLISE PJ</td></tr>`;
-        html += createRow('PJ - Total Produção', 'totalPJ');
-        html += createRow('PJ - Média Diária por Pessoa', 'pj_media', true);
-
-        document.getElementById('table-body').innerHTML = html;
-
-        // --- ATUALIZA CARDS DO TOPO ---
-        const t = stats[99];
-        const diasTotal = t.dias.size || 1;
-        document.getElementById('p-total').innerText = t.total.toLocaleString();
-        document.getElementById('p-media-time').innerText = Math.round(t.total / diasTotal).toLocaleString();
-        document.getElementById('p-media-ind').innerText = Math.round(t.total / diasTotal / FIXED_HEADCOUNT).toLocaleString();
-        document.getElementById('p-headcount').innerText = t.assistentes.size;
-    }
-
-    function zerarPainel() {
-        ['p-total','p-media-time','p-media-ind','p-headcount'].forEach(id => document.getElementById(id).innerText = '0');
+        document.getElementById('table-body').innerHTML=h;
+        const tot=st[99]; const dt=tot.d.size||1;
+        document.getElementById('p-total').innerText=tot.t.toLocaleString();
+        document.getElementById('p-media-time').innerText=Math.round(tot.t/dt).toLocaleString();
+        document.getElementById('p-media-ind').innerText=Math.round(tot.t/dt/HEAD_FIXED).toLocaleString();
+        document.getElementById('p-headcount').innerText=tot.a.size;
     }
 </script>
 </body>
