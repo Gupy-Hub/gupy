@@ -3,158 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão</title>
+    <title>Gestão Administrativa</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+    
     <style>
-        :root { 
-            --primary: #0045d0; --accent: #2662ea; --nav: #0d1b2a;
-            --bg: #f3f5f8; --card: #ffffff; --border: #e2e8f0;
-            --text-main: #1f2937; --text-muted: #64748b;
+        /* Estilos específicos da página de Gestão */
+        .management-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        
+        .card-form { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .card-header { font-size: 1rem; font-weight: 700; color: var(--nav); margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        
+        .btn-save { background: var(--success); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.9rem; }
+        .btn-save:hover { background: #059669; }
+
+        .list-container { max-height: 400px; overflow-y: auto; }
+        .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; align-items: center; }
+        .list-item:last-child { border-bottom: none; }
+        .list-item:hover { background: var(--zebra-hover); }
+        
+        .role-tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; font-weight: 600; }
+        .role-clt { background: #dbeafe; color: var(--clt); }
+        .role-pj { background: #cffafe; color: var(--pj); }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 1000px) {
+            .management-grid { grid-template-columns: 1fr; }
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 80px; color: var(--text-main); }
-
-        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .nav-left { display: flex; align-items: center; gap: 40px; }
-        .brand .big { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: white; }
-        .brand .big span { color: var(--accent); }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.3s; padding-bottom: 23px; border-bottom: 3px solid transparent; }
-        .nav-item:hover, .nav-item.active { color: white; border-bottom-color: var(--accent); }
-        .user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
-        .user-name { font-weight: 600; font-size: 0.85rem; color: white; }
-        .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; }
-
-        .container { max-width: 1000px; margin: 0 auto; padding: 30px; }
-        .admin-card { background: var(--card); border-radius: 8px; padding: 40px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        
-        .form-group { margin-bottom: 25px; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-        input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; color: var(--text-main); font-family: inherit; }
-        
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; margin-top: 30px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--bg); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid var(--bg); font-size: 0.9rem; color: var(--text-main); }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="nav-left">
-        <div class="brand" onclick="window.location.href='produtividade.html'">
-            <div class="big">PRODUTIVIDADE<span>.</span></div>
-        </div>
-        <div class="nav-links">
-            <a href="gestao.html" class="nav-item active">Gestão</a>
-            <a href="produtividade.html" class="nav-item">Produtividade</a>
-            <a href="performance.html" class="nav-item">Performance</a>
-            <a href="consolidado.html" class="nav-item">Consolidado</a>
-            <a href="minha_area.html" class="nav-item">Minha Área</a>
-        </div>
-    </div>
-    <div class="user-area">
-        <span id="user-display" class="user-name">Carregando...</span>
-        <span class="logout-btn" onclick="logout()">Sair</span>
-    </div>
-</nav>
-
 <div class="container">
-    <div class="admin-card">
-        <div style="margin-bottom:30px; display:flex; gap:10px;">
-            <select id="gestao-selector" onchange="alternarModulo()">
-                <option value="equipe">👥 Cadastro de Equipe</option>
-                <option value="metas">🎯 Configurar Metas</option>
-                <option value="lista">📋 Listagem Geral</option>
-                <option value="limpar">⚠️ Reiniciar Sistema</option>
-            </select>
+    
+    <div class="top-controls" style="justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size:1.5rem; margin:0; color:var(--nav);">Painel de Gestão</h1>
+            <p style="margin:5px 0 0 0; color:var(--text-muted); font-size:0.9rem;">Configuração de Metas e Colaboradores</p>
         </div>
-
-        <div id="mod-equipe">
-            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Cadastrar Novo Colaborador</h2>
-            <div class="form-group"><label>ID (Planilha)</label><input type="number" id="u-id"></div>
-            <div class="form-group"><label>Nome Completo</label><input type="text" id="u-nome"></div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                <div class="form-group"><label>Função</label><select id="u-fun"><option>Assistente</option><option>Auditora</option><option>Gestora</option></select></div>
-                <div class="form-group"><label>Contrato</label><select id="u-con"><option>CLT</option><option>PJ</option></select></div>
+        <div>
             </div>
-            <button class="btn btn-primary" onclick="salvarUsuario()">Salvar Cadastro</button>
+    </div>
+
+    <div class="management-grid">
+        
+        <div class="column">
+            <div class="card-form" style="margin-bottom: 20px;">
+                <div class="card-header">🎯 Nova Meta</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Colaborador</label>
+                        <select id="meta-user">
+                            <option value="">Selecione...</option>
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Vigência (Início)</label>
+                        <input type="date" id="meta-date">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Valor da Meta (Diária)</label>
+                        <input type="number" id="meta-value" placeholder="Ex: 650">
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="salvarMeta()">Salvar Meta</button>
+            </div>
+
+            <div class="card-form">
+                <div class="card-header">Histórico de Metas Recentes</div>
+                <div class="list-container" id="meta-list">
+                    <div style="text-align:center; padding:20px; color:#999;">Carregando...</div>
+                </div>
+            </div>
         </div>
 
-        <div id="mod-metas" class="hidden">
-            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Definir Meta Diária</h2>
-            <div class="form-group"><label>Colaborador</label><select id="m-user"></select></div>
-            <div class="form-group"><label>Valor da Meta</label><input type="number" id="m-val"></div>
-            <div class="form-group"><label>Início da Vigência</label><input type="date" id="m-data"></div>
-            <button class="btn btn-primary" onclick="salvarMeta()">Aplicar Meta</button>
+        <div class="column">
+            <div class="card-form">
+                <div class="card-header">
+                    👥 Quadro de Colaboradores
+                    <span class="badge bg-none" id="total-users">0</span>
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <input type="text" id="search-user" placeholder="Buscar assistente..." onkeyup="filtrarUsuarios()" style="padding:8px; font-size:0.8rem;">
+                </div>
+
+                <div class="list-container" id="user-list">
+                    </div>
+            </div>
         </div>
 
-        <div id="mod-lista" class="hidden">
-            <h2 style="margin-top:0; font-size:1.3rem; color:var(--nav)">Equipe Cadastrada</h2>
-            <table id="tabela-equipe">
-                <thead><tr><th>ID</th><th>Nome</th><th>Contrato</th><th>Função</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-        <div id="mod-limpar" class="hidden" style="text-align:center;">
-            <h2 style="margin-top:0; font-size:1.3rem; color:#dc2626;">Zona de Perigo</h2>
-            <p>Esta ação removerá permanentemente todas as produções enviadas via Excel.</p>
-            <button class="btn btn-danger" onclick="limparBanco()">Limpar Banco de Produção</button>
-        </div>
     </div>
 </div>
 
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/layout.js"></script>
+
 <script>
-    const SB_URL = "https://glqrpsyjwozvislyxapj.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscXJwc3lqd296dmlzbHl4YXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTQyOTgsImV4cCI6MjA4MTgzMDI5OH0.etzcmIHgPcGC12HwZPTU2u0DLtJdF3XTBSYW38O7S-w";
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-    const sessao = JSON.parse(localStorage.getItem('usuario'));
-    if(!sessao) window.location.href = 'index.html';
-    document.getElementById('user-display').innerText = sessao.nome;
-    function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
-
-    function alternarModulo() {
-        const m = document.getElementById('gestao-selector').value;
-        document.getElementById('mod-equipe').classList.toggle('hidden', m !== 'equipe');
-        document.getElementById('mod-metas').classList.toggle('hidden', m !== 'metas');
-        document.getElementById('mod-lista').classList.toggle('hidden', m !== 'lista');
-        document.getElementById('mod-limpar').classList.toggle('hidden', m !== 'limpar');
-        if(m === 'lista' || m === 'metas') carregarListas();
+    // Verifica permissão (Apenas Gestora acessa aqui)
+    if (SESSAO_ATUAL.funcao !== 'Gestora') {
+        alert('Acesso restrito à gestão.');
+        window.location.href = 'produtividade.html';
     }
 
-    async function salvarUsuario() {
-        const id = document.getElementById('u-id').value;
-        const nome = document.getElementById('u-nome').value;
-        if(!id || !nome) return alert("Preencha ID e Nome");
-        await _supabase.from('usuarios').upsert([{ id, nome, funcao: document.getElementById('u-fun').value, contrato: document.getElementById('u-con').value, senha: '123' }]);
-        alert("Salvo!");
+    let allUsers = [];
+
+    async function init() {
+        await loadUsers();
+        await loadMetas();
+        
+        // Define data de hoje no input
+        document.getElementById('meta-date').value = new Date().toISOString().substring(0, 10);
+    }
+
+    // --- USUÁRIOS ---
+    async function loadUsers() {
+        const { data: users, error } = await _supabase
+            .from('usuarios')
+            .select('*')
+            .order('nome');
+
+        if(error) return console.error(error);
+        
+        allUsers = users;
+        renderUsers(users);
+        populateSelect(users);
+    }
+
+    function renderUsers(lista) {
+        const container = document.getElementById('user-list');
+        document.getElementById('total-users').innerText = lista.length;
+        
+        let html = '';
+        lista.forEach(u => {
+            // Define classes visuais
+            const contratoClass = (u.contrato && u.contrato.includes('CLT')) ? 'role-clt' : 'role-pj';
+            const contratoLabel = u.contrato || 'PJ';
+            
+            html += `
+                <div class="list-item">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-weight:700; color:var(--nav);">${u.nome}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${u.email || '-'}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="role-tag" style="background:#f1f5f9;">${u.funcao}</span>
+                        <span class="role-tag ${contratoClass}">${contratoLabel}</span>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function populateSelect(lista) {
+        const sel = document.getElementById('meta-user');
+        // Limpa (mantém o primeiro)
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        
+        // Filtra apenas assistentes para meta
+        const assistentes = lista.filter(u => u.funcao === 'Assistente');
+        
+        assistentes.forEach(u => {
+            sel.innerHTML += `<option value="${u.id}">${u.nome}</option>`;
+        });
+    }
+
+    function filtrarUsuarios() {
+        const term = document.getElementById('search-user').value.toLowerCase();
+        const filtered = allUsers.filter(u => u.nome.toLowerCase().includes(term));
+        renderUsers(filtered);
+    }
+
+    // --- METAS ---
+    async function loadMetas() {
+        // Busca as últimas 20 metas cadastradas
+        const { data: metas, error } = await _supabase
+            .from('metas')
+            .select('*, usuarios(nome)')
+            .order('data_inicio', { ascending: false })
+            .limit(20);
+
+        if(error) return console.error(error);
+
+        const container = document.getElementById('meta-list');
+        let html = '';
+        
+        if(metas.length === 0) html = '<div style="padding:15px; text-align:center; font-size:0.8rem;">Nenhuma meta configurada.</div>';
+
+        metas.forEach(m => {
+            const dataF = m.data_inicio.split('-').reverse().join('/');
+            html += `
+                <div class="list-item">
+                    <div>
+                        <span style="display:block; font-weight:700; color:var(--primary);">${m.usuarios?.nome || 'Usuário Removido'}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Início: ${dataF}</span>
+                    </div>
+                    <div style="font-size:1rem; font-weight:800; color:var(--nav);">
+                        ${m.valor_meta}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
     }
 
     async function salvarMeta() {
-        await _supabase.from('metas').insert([{ usuario_id: document.getElementById('m-user').value, valor_meta: document.getElementById('m-val').value, data_inicio: document.getElementById('m-data').value }]);
-        alert("Meta definida!");
-    }
+        const uid = document.getElementById('meta-user').value;
+        const data = document.getElementById('meta-date').value;
+        const valor = document.getElementById('meta-value').value;
 
-    async function limparBanco() {
-        if(confirm("Deseja realmente apagar todas as produções?")) {
-            if(prompt("Digite LIMPAR para confirmar") === "LIMPAR") {
-                await _supabase.from('producao').delete().neq('id', 0);
-                alert("Dados apagados!");
-            }
+        if(!uid || !data || !valor) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        const btn = document.querySelector('.btn-save');
+        const txtOriginal = btn.innerText;
+        btn.innerText = "Salvando...";
+        btn.disabled = true;
+
+        const { error } = await _supabase
+            .from('metas')
+            .insert({
+                usuario_id: uid,
+                data_inicio: data,
+                valor_meta: parseInt(valor)
+            });
+
+        if(error) {
+            alert('Erro ao salvar meta: ' + error.message);
+        } else {
+            // Sucesso
+            document.getElementById('meta-value').value = ''; // Limpa valor
+            await loadMetas(); // Recarrega lista
+            // Feedback visual rápido
+            btn.style.background = "var(--primary)";
+            btn.innerText = "Salvo com Sucesso!";
+            setTimeout(() => {
+                btn.style.background = "";
+                btn.innerText = txtOriginal;
+                btn.disabled = false;
+            }, 2000);
         }
     }
 
-    async function carregarListas() {
-        const { data: u } = await _supabase.from('usuarios').select('*').order('nome');
-        document.getElementById('m-user').innerHTML = u.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
-        document.querySelector('#tabela-equipe tbody').innerHTML = u.map(x => `<tr><td>${x.id}</td><td>${x.nome}</td><td>${x.contrato}</td><td>${x.funcao}</td></tr>`).join('');
-    }
+    init();
 </script>
 </body>
 </html>
