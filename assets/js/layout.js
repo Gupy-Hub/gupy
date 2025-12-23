@@ -1,6 +1,5 @@
 function renderNavbar() {
     if(window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) return;
-
     const navHTML = `
     <nav class="navbar">
         <div class="nav-left">
@@ -16,21 +15,14 @@ function renderNavbar() {
             </div>
         </div>
         <div class="user-area">
-            <span id="user-display" class="user-name">${SESSAO_ATUAL ? SESSAO_ATUAL.nome : 'Usuário'}</span>
+            <span class="user-name">${SESSAO_ATUAL ? SESSAO_ATUAL.nome : 'Usuário'}</span>
             <span class="logout-btn" onclick="logout()">Sair</span>
         </div>
-    </nav>
-    `;
+    </nav>`;
     document.body.insertAdjacentHTML('afterbegin', navHTML);
-    
-    // Marca item ativo
     const page = window.location.pathname.split('/').pop();
-    const links = document.querySelectorAll('.nav-item');
-    links.forEach(link => {
+    document.querySelectorAll('.nav-item').forEach(link => {
         if(link.getAttribute('href') === page) link.classList.add('active');
     });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    renderNavbar();
-});
+document.addEventListener("DOMContentLoaded", renderNavbar);
