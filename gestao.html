@@ -2,435 +2,81 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Administrativa</title>
-    
-    <link rel="icon" href="assets/img/logo.png" type="image/png">
+    <title>Gestão</title>
+    <link rel="icon" href="assets/img/favicon.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="assets/css/style.css">
-    
-    <style>
-        /* ESTILOS ESPECÍFICOS DA GESTÃO */
-        .management-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        
-        .card-form { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); height: 100%; display: flex; flex-direction: column; }
-        .card-header { font-size: 1rem; font-weight: 700; color: var(--nav); margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        
-        .btn-save { background: var(--success); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.9rem; }
-        .btn-save:hover { background: #059669; }
-        .btn-save:disabled { background: #9ca3af; cursor: not-allowed; }
-        
-        .btn-add { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600; }
-        .btn-add:hover { background: var(--accent); }
-
-        .btn-action { background: white; border: 1px solid var(--border); border-radius: 4px; padding: 6px 12px; cursor: pointer; color: var(--nav); transition: 0.2s; font-size: 0.8rem; font-weight: 600; }
-        .btn-action:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-
-        .list-container { flex: 1; overflow-y: auto; padding-right: 5px; min-height: 300px; max-height: 500px; }
-        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; align-items: center; transition: 0.2s; }
-        .list-item:hover { background: #f8fafc; }
-        
-        .role-tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; font-weight: 600; margin-left: 5px; }
-        .role-clt { background: #dbeafe; color: #1e40af; }
-        .role-pj { background: #cffafe; color: #0e7490; }
-        .id-badge { background: var(--nav); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 8px; }
-
-        /* MODAL */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
-        .modal { background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
-        .modal-title { font-size: 1.2rem; font-weight: 800; color: var(--nav); margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display:flex; justify-content:space-between; }
-        .close-modal { cursor: pointer; font-size: 1.5rem; color: #94a3b8; line-height: 0.8; }
-        
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 1000px) { .management-grid { grid-template-columns: 1fr; } }
-    </style>
+    <style>.management-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; } .list-container { height: 400px; overflow-y: auto; } .list-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; } .list-item:hover { background: #f8fafc; } .role-tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; background: #e2e8f0; font-weight: 600; margin-left: 5px; }</style>
 </head>
 <body>
-
 <div class="container">
-    
-    <div class="top-controls" style="justify-content: space-between; align-items: center;">
-        <div>
-            <h1 style="font-size:1.5rem; margin:0; color:var(--nav);">Painel de Gestão</h1>
-            <p style="margin:5px 0 0 0; color:var(--text-muted); font-size:0.9rem;">Gerencie Colaboradores e Metas</p>
-        </div>
-    </div>
-
+    <div class="top-controls"><div><h1 style="font-size:1.5rem;color:var(--nav);">Painel de Gestão</h1></div></div>
     <div class="management-grid">
-        
         <div class="column">
             <div class="card-form">
-                <div class="card-header">🎯 Configuração de Metas</div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Colaborador</label>
-                        <select id="meta-user">
-                            <option value="">Selecione...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Início Vigência</label>
-                        <input type="date" id="meta-date">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Valor da Meta (Diária)</label>
-                        <input type="number" id="meta-value" placeholder="Ex: 650">
-                    </div>
-                </div>
-
+                <div class="card-header">🎯 Nova Meta</div>
+                <div class="form-row"><div class="form-group"><label>Colaborador</label><select id="meta-user"></select></div><div class="form-group"><label>Início</label><input type="date" id="meta-date"></div></div>
+                <div class="form-row"><div class="form-group"><label>Valor</label><input type="number" id="meta-value"></div></div>
                 <button class="btn-save" onclick="salvarMeta()">Gravar Meta</button>
-
-                <div style="margin-top: 30px; flex: 1; display: flex; flex-direction: column;">
-                    <div class="card-header" style="font-size:0.9rem; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>Metas Atuais (Vigentes)</span>
-                        <small style="font-weight:400; color:var(--text-muted)">Hoje: <span id="today-display"></span></small>
-                    </div>
-                    <div class="list-container" id="meta-list" style="max-height: 300px;">
-                        </div>
-                </div>
+                <div style="margin-top:20px;"><div class="card-header" style="font-size:0.9rem;display:flex;justify-content:space-between;"><span>Metas Atuais</span><small id="today-display"></small></div><div class="list-container" id="meta-list"></div></div>
             </div>
         </div>
-
         <div class="column">
             <div class="card-form">
-                <div class="card-header">
-                    <span>👥 Equipe (<span id="total-users">0</span>)</span>
-                    <button class="btn-add" onclick="abrirModalUsuario()">+ Adicionar</button>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <input type="text" id="search-user" placeholder="Buscar por nome ou ID..." onkeyup="filtrarUsuarios()" style="padding:10px; font-size:0.85rem;">
-                </div>
-
-                <div class="list-container" id="user-list">
-                    </div>
+                <div class="card-header"><span>👥 Equipe (<span id="total-users">0</span>)</span><button onclick="abrirModalUsuario()" style="background:var(--primary);color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">+ Novo</button></div>
+                <input type="text" id="search-user" placeholder="Buscar..." onkeyup="filtrarUsuarios()" style="width:100%;margin-bottom:10px;">
+                <div class="list-container" id="user-list"></div>
             </div>
         </div>
-
     </div>
 </div>
-
 <div class="modal-overlay" id="modal-user">
     <div class="modal">
-        <div class="modal-title">
-            <span id="modal-label">Novo Colaborador</span>
-            <span class="close-modal" onclick="fecharModal()">&times;</span>
-        </div>
-        
-        <div class="form-group" style="margin-bottom:15px;">
-            <label>ID (Login)</label>
-            <input type="number" id="user-id" placeholder="Digite o ID do funcionário" style="font-weight:700; color:var(--nav);">
-        </div>
-
-        <div class="form-group" style="margin-bottom:15px;">
-            <label>Nome Completo</label>
-            <input type="text" id="user-name" placeholder="Ex: Maria Silva">
-        </div>
-
-        <div class="form-group" style="margin-bottom:15px;">
-            <label>Senha de Acesso</label>
-            <input type="text" id="user-pass" placeholder="Defina uma senha">
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label>Função</label>
-                <select id="user-role">
-                    <option value="Assistente">Assistente</option>
-                    <option value="Gestora">Gestora</option>
-                    <option value="Auditora">Auditora</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Contrato</label>
-                <select id="user-contract">
-                    <option value="PJ">PJ</option>
-                    <option value="CLT">CLT</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="form-group" style="margin-bottom:15px;">
-            <label>E-mail (Opcional)</label>
-            <input type="email" id="user-email" placeholder="contato@empresa.com">
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn-save" onclick="salvarUsuario()">Salvar Dados</button>
-            <button class="btn-save" id="btn-delete" onclick="excluirUsuario()" style="background:var(--danger); width:30%; display:none;">Excluir</button>
-        </div>
+        <div class="card-header">Colaborador <span style="cursor:pointer" onclick="fecharModal()">&times;</span></div>
+        <div class="form-group"><label>ID</label><input type="number" id="user-id"></div>
+        <div class="form-group" style="margin-top:10px"><label>Nome</label><input type="text" id="user-name"></div>
+        <div class="form-group" style="margin-top:10px"><label>Senha</label><input type="text" id="user-pass"></div>
+        <div class="form-row" style="margin-top:10px"><div class="form-group"><label>Função</label><select id="user-role"><option>Assistente</option><option>Gestora</option><option>Auditora</option></select></div><div class="form-group"><label>Contrato</label><select id="user-contract"><option>PJ</option><option>CLT</option></select></div></div>
+        <div style="display:flex;gap:10px;margin-top:20px;"><button onclick="salvarUsuario()" class="btn-save">Salvar</button><button id="btn-delete" onclick="excluirUsuario()" class="btn-save" style="background:var(--danger);display:none;">Excluir</button></div>
     </div>
 </div>
-
 <script src="assets/js/config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/layout.js"></script>
-
 <script>
-    // 1. SEGURANÇA
-    if (SESSAO_ATUAL.funcao !== 'Gestora') {
-        alert('Acesso restrito à gestão.');
-        window.location.href = 'produtividade.html';
+    if(SESSAO_ATUAL.funcao!=='Gestora') window.location.href='produtividade.html';
+    let allUsers=[];
+    async function init(){ const t=new Date(); document.getElementById('meta-date').value=t.toISOString().split('T')[0]; document.getElementById('today-display').innerText=t.toLocaleDateString(); await loadUsers(); await loadMetasAtuais(); }
+    async function loadUsers(){ const{data}=await _supabase.from('usuarios').select('*').order('nome'); allUsers=data; renderUsers(data); populateSelect(data); }
+    function renderUsers(l){ document.getElementById('total-users').innerText=l.length; let h=''; l.forEach(u=>{ h+=`<div class="list-item"><div><b>#${u.id}</b> ${u.nome}</div><button style="border:1px solid #ddd;background:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;" onclick='abrirModalUsuario(${JSON.stringify(u)})'>✏️</button></div>`; }); document.getElementById('user-list').innerHTML=h; }
+    function populateSelect(l){ const s=document.getElementById('meta-user'); s.innerHTML='<option value="">Selecione...</option>'; l.filter(u=>u.funcao==='Assistente').forEach(u=>s.innerHTML+=`<option value="${u.id}">${u.nome}</option>`); }
+    function filtrarUsuarios(){ const t=document.getElementById('search-user').value.toLowerCase(); renderUsers(allUsers.filter(u=>u.nome.toLowerCase().includes(t)||String(u.id).includes(t))); }
+    async function loadMetasAtuais(){ 
+        const c=document.getElementById('meta-list'); c.innerHTML='Carregando...';
+        const{data:as}=await _supabase.from('usuarios').select('id,nome').eq('funcao','Assistente').order('nome');
+        const{data:ms}=await _supabase.from('metas').select('*').order('data_inicio',{ascending:false});
+        if(!as.length){c.innerHTML='Sem assistentes.';return;}
+        let h=''; const hoje=new Date().toISOString().split('T')[0];
+        as.forEach(a=>{ const m=ms.find(x=>x.usuario_id===a.id && x.data_inicio<=hoje); h+=`<div class="list-item"><div><b>${a.nome}</b><br><small>${m?m.data_inicio.split('-').reverse().join('/'):'-'}</small></div><b style="font-size:1.1rem;${m?'color:var(--nav)':'color:#ccc'}">${m?m.valor_meta:0}</b></div>`; });
+        c.innerHTML=h;
     }
-
-    let allUsers = [];
-
-    // 2. INICIALIZAÇÃO
-    async function init() {
-        // Configura datas
-        const today = new Date();
-        document.getElementById('meta-date').value = today.toISOString().substring(0, 10);
-        if(document.getElementById('today-display')) {
-            document.getElementById('today-display').innerText = today.toLocaleDateString('pt-BR');
-        }
-
-        // Carregamentos
-        await loadUsers();
-        await loadMetasAtuais();
+    function abrirModalUsuario(u=null){ 
+        document.getElementById('modal-user').style.display='flex'; const b=document.getElementById('btn-delete'); const i=document.getElementById('user-id');
+        if(u){ i.value=u.id; i.disabled=true; document.getElementById('user-name').value=u.nome; document.getElementById('user-pass').value=u.senha; document.getElementById('user-role').value=u.funcao; document.getElementById('user-contract').value=u.contrato||'PJ'; b.style.display='block'; }
+        else{ i.value=''; i.disabled=false; document.getElementById('user-name').value=''; document.getElementById('user-pass').value=''; b.style.display='none'; }
     }
-
-    // --- CRUD USUÁRIOS ---
-
-    async function loadUsers() {
-        const { data: users, error } = await _supabase.from('usuarios').select('*').order('nome');
-        if(error) return console.error(error);
-        allUsers = users;
-        renderUsers(users);
-        populateSelect(users);
+    function fecharModal(){ document.getElementById('modal-user').style.display='none'; }
+    async function salvarUsuario(){ 
+        const i=document.getElementById('user-id').value, n=document.getElementById('user-name').value, s=document.getElementById('user-pass').value, f=document.getElementById('user-role').value, c=document.getElementById('user-contract').value;
+        if(!i||!n||!s) return alert('Preencha tudo');
+        const p={id:parseInt(i),nome:n,senha:s,funcao:f,contrato:c};
+        if(document.getElementById('user-id').disabled) await _supabase.from('usuarios').update(p).eq('id',i);
+        else { const{error}=await _supabase.from('usuarios').insert(p); if(error) return alert('Erro: ID duplicado?'); }
+        fecharModal(); await loadUsers(); await loadMetasAtuais();
     }
-
-    function renderUsers(lista) {
-        const container = document.getElementById('user-list');
-        document.getElementById('total-users').innerText = lista.length;
-        let html = '';
-        
-        lista.forEach(u => {
-            const contratoClass = (u.contrato && u.contrato.includes('CLT')) ? 'role-clt' : 'role-pj';
-            // Escapar aspas para passar o objeto no onclick
-            const userJson = JSON.stringify(u).replace(/"/g, '&quot;');
-            
-            html += `
-                <div class="list-item">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="id-badge" title="ID de Login">#${u.id}</span>
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-weight:700; color:var(--nav);">${u.nome}</span>
-                            <div style="margin-top:2px;">
-                                <span class="role-tag" style="background:#f1f5f9; margin:0;">${u.funcao}</span>
-                                <span class="role-tag ${contratoClass}">${u.contrato || 'PJ'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="btn-action" onclick="abrirModalUsuario(${userJson})">✏️ Editar</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    // Abertura do Modal
-    function abrirModalUsuario(user = null) {
-        const modal = document.getElementById('modal-user');
-        const btnDel = document.getElementById('btn-delete');
-        const title = document.getElementById('modal-label');
-        const idInput = document.getElementById('user-id');
-        
-        if (user) {
-            // MODO EDIÇÃO
-            title.innerText = "Editar Colaborador";
-            idInput.value = user.id;
-            idInput.disabled = true; // Trava ID na edição
-            idInput.style.backgroundColor = "#e2e8f0";
-            
-            document.getElementById('user-name').value = user.nome;
-            document.getElementById('user-pass').value = user.senha;
-            document.getElementById('user-email').value = user.email || '';
-            document.getElementById('user-role').value = user.funcao;
-            document.getElementById('user-contract').value = user.contrato || 'PJ';
-            btnDel.style.display = 'block';
-        } else {
-            // MODO CRIAÇÃO
-            title.innerText = "Novo Colaborador";
-            idInput.value = "";
-            idInput.disabled = false; // Libera ID na criação
-            idInput.style.backgroundColor = "#fff";
-            
-            document.getElementById('user-name').value = "";
-            document.getElementById('user-pass').value = "";
-            document.getElementById('user-email').value = "";
-            document.getElementById('user-role').value = "Assistente";
-            document.getElementById('user-contract').value = "PJ";
-            btnDel.style.display = 'none';
-        }
-        
-        modal.style.display = 'flex';
-    }
-
-    function fecharModal() {
-        document.getElementById('modal-user').style.display = 'none';
-    }
-
-    // CREATE / UPDATE
-    async function salvarUsuario() {
-        const id = document.getElementById('user-id').value;
-        const nome = document.getElementById('user-name').value;
-        const senha = document.getElementById('user-pass').value;
-        const email = document.getElementById('user-email').value;
-        const funcao = document.getElementById('user-role').value;
-        const contrato = document.getElementById('user-contract').value;
-
-        if(!id || !nome || !senha) {
-            alert("Preencha ID, Nome e Senha.");
-            return;
-        }
-
-        const payload = { id: parseInt(id), nome, senha, email, funcao, contrato };
-        let error = null;
-
-        const btn = document.querySelector('#modal-user .btn-save');
-        btn.innerText = "Salvando...";
-        btn.disabled = true;
-
-        if(document.getElementById('user-id').disabled) {
-            // Update
-            const res = await _supabase.from('usuarios').update(payload).eq('id', id);
-            error = res.error;
-        } else {
-            // Create
-            const res = await _supabase.from('usuarios').insert(payload);
-            error = res.error;
-        }
-
-        btn.innerText = "Salvar Dados";
-        btn.disabled = false;
-
-        if(error) {
-            if(error.code === '23505') alert("Erro: Já existe um usuário com este ID.");
-            else alert("Erro ao salvar: " + error.message);
-        } else {
-            fecharModal();
-            loadUsers(); // Atualiza lista e selects
-            loadMetasAtuais(); // Atualiza lista de metas com novos usuários
-        }
-    }
-
-    // DELETE
-    async function excluirUsuario() {
-        const id = document.getElementById('user-id').value;
-        if(!id) return;
-        
-        if(confirm(`Tem certeza que deseja excluir o usuário #${id}?`)) {
-            const { error } = await _supabase.from('usuarios').delete().eq('id', id);
-            if(error) alert("Erro: " + error.message);
-            else {
-                fecharModal();
-                loadUsers();
-                loadMetasAtuais();
-            }
-        }
-    }
-
-    // --- FILTROS E METAS ---
-
-    function populateSelect(lista) {
-        const sel = document.getElementById('meta-user');
-        sel.innerHTML = '<option value="">Selecione...</option>';
-        const assistentes = lista.filter(u => u.funcao === 'Assistente');
-        assistentes.forEach(u => sel.innerHTML += `<option value="${u.id}">${u.nome}</option>`);
-    }
-
-    function filtrarUsuarios() {
-        const term = document.getElementById('search-user').value.toLowerCase();
-        const filtered = allUsers.filter(u => 
-            u.nome.toLowerCase().includes(term) || 
-            String(u.id).includes(term)
-        );
-        renderUsers(filtered);
-    }
-
-    // LISTA DE METAS INTELIGENTE (ATUAIS)
-    async function loadMetasAtuais() {
-        const container = document.getElementById('meta-list');
-        container.innerHTML = '<div style="padding:15px; text-align:center; color:#999;">Carregando...</div>';
-
-        // Busca Assistentes
-        const { data: assistentes } = await _supabase.from('usuarios').select('id, nome').eq('funcao', 'Assistente').order('nome');
-        
-        // Busca Metas (todas)
-        const { data: todasMetas } = await _supabase.from('metas').select('*').order('data_inicio', { ascending: false });
-
-        if (!assistentes || assistentes.length === 0) {
-            container.innerHTML = '<div style="padding:15px;">Nenhum assistente cadastrado.</div>';
-            return;
-        }
-
-        let html = '';
-        const hoje = new Date().toISOString().split('T')[0];
-
-        assistentes.forEach(assistente => {
-            // Acha a meta mais recente que já começou (data_inicio <= hoje)
-            const metaAtual = todasMetas.find(m => m.usuario_id === assistente.id && m.data_inicio <= hoje);
-
-            const valor = metaAtual ? metaAtual.valor_meta : 0;
-            const dataVigencia = metaAtual ? metaAtual.data_inicio.split('-').reverse().join('/') : '-';
-            const styleValor = metaAtual ? 'color:var(--nav);' : 'color:#cbd5e1;'; 
-
-            html += `
-                <div class="list-item">
-                    <div>
-                        <span style="display:block; font-weight:700; color:var(--primary);">${assistente.nome}</span>
-                        <span style="font-size:0.7rem; color:var(--text-muted);">Vigência: ${dataVigencia}</span>
-                    </div>
-                    <div style="font-size:1.1rem; font-weight:800; ${styleValor}">
-                        ${valor}
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    async function salvarMeta() {
-        const uid = document.getElementById('meta-user').value;
-        const data = document.getElementById('meta-date').value;
-        const valor = document.getElementById('meta-value').value;
-
-        if(!uid || !data || !valor) return alert("Preencha todos os campos da meta!");
-
-        const btn = document.querySelector('.card-form .btn-save'); 
-        const txt = btn.innerText;
-        btn.innerText = "Salvando...";
-        btn.disabled = true;
-
-        const { error } = await _supabase.from('metas').insert({ usuario_id: uid, data_inicio: data, valor_meta: parseInt(valor) });
-
-        if(error) alert('Erro: ' + error.message);
-        else {
-            document.getElementById('meta-value').value = ''; 
-            await loadMetasAtuais(); // Recarrega lista
-            btn.style.background = 'var(--primary)';
-            btn.innerText = "Salvo!";
-            setTimeout(() => { 
-                btn.innerText = txt; 
-                btn.style.background = '';
-                btn.disabled = false; 
-            }, 2000);
-        }
-    }
-
+    async function excluirUsuario(){ if(confirm('Excluir?')){ await _supabase.from('usuarios').delete().eq('id',document.getElementById('user-id').value); fecharModal(); await loadUsers(); await loadMetasAtuais(); } }
+    async function salvarMeta(){ const u=document.getElementById('meta-user').value, d=document.getElementById('meta-date').value, v=document.getElementById('meta-value').value; if(!u||!d||!v)return alert('Preencha'); await _supabase.from('metas').insert({usuario_id:u,data_inicio:d,valor_meta:v}); document.getElementById('meta-value').value=''; loadMetasAtuais(); alert('Salvo!'); }
     init();
 </script>
 </body>
