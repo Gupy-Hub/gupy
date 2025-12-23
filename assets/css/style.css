@@ -1,132 +1,80 @@
-:root { 
-    /* Paleta de Cores */
-    --primary: #0045d0;    /* Azul Institucional */
-    --accent: #2662ea;     /* Azul Vibrante */
-    --nav: #0d1b2a;        /* Azul Escuro (Navbar) */
-    
-    --success: #00d09e; 
-    --danger: #ef4444;
-    --warning: #f59e0b;
+/* --- TABELA OTIMIZADA (Para caber na tela) --- */
 
-    /* Categorias */
-    --clt: #0077b6; --pj: #00b4d8; 
-    --fifo: #f59e0b; --gt: #6b7280; 
-    --gp: #8b5cf6; --fc: #ec4899;
-
-    /* Estrutura */
-    --bg: #f3f5f8;         
-    --card: #ffffff; 
-    --border: #e2e8f0;
-    --text-main: #1f2937;
-    --text-muted: #64748b;
-    
-    /* Tabelas */
-    --zebra-even: #f8fafc;
-    --zebra-hover: #eff6ff;
-    --row-weekend: #fefce8; 
-    --locked-bg: #e2e8f0;
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 0.75rem; /* Fonte ligeiramente menor para caber tudo */
 }
 
-body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 80px; color: var(--text-main); }
-
-/* NAVBAR & LOGO */
-.navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-.nav-left { display: flex; align-items: center; gap: 40px; }
-
-.logo-nav { height: 45px; width: auto; transition: 0.2s; }
-.logo-nav:hover { opacity: 0.9; }
-.logo-login { max-width: 280px; height: auto; display: block; margin: 0 auto; }
-
-.nav-links { display: flex; gap: 30px; }
-.nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.3s; padding-bottom: 23px; border-bottom: 3px solid transparent; }
-.nav-item:hover, .nav-item.active { color: white; border-bottom-color: var(--accent); }
-
-.user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
-.user-name { font-weight: 600; font-size: 0.85rem; color: white; display: block; }
-.logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; }
-
-.container { max-width: 1400px; margin: 0 auto; padding: 30px; }
-.hidden { display: none !important; }
-
-/* CONTROLES */
-.top-controls { display: flex; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); align-items: flex-end; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-.control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-.control-group label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-select, input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter'; font-size: 0.85rem; color: var(--text-main); outline: none; background: #fff; width: 100%; box-sizing: border-box; }
-
-/* CARDS GERAIS */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-.stat-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
-.stat-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
-.stat-value { font-size: 1.6rem; font-weight: 700; color: var(--nav); }
-.stat-sub { font-size: 0.75rem; margin-top: 5px; color: var(--text-muted); }
-
-/* CONTAINER DE TABELAS */
-.table-wrap, .table-card, .log-section { 
-    background: var(--card); 
-    border-radius: 8px; 
-    border: 1px solid var(--border); 
-    overflow: hidden; /* Importante para conter o scroll */
-    margin-bottom: 20px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
+/* Colunas de Dados (Jan, Fev, etc) */
+th { 
+    padding: 10px 4px; /* Menos espaço lateral */
+    text-align: center; /* Centralizado para economizar espaço */
+    color: var(--text-muted); 
+    font-weight: 700; 
+    border-bottom: 1px solid var(--border); 
+    background: #f8fafc; 
+    text-transform: uppercase; 
+    font-size: 0.7rem; 
+    white-space: nowrap; 
 }
 
-.log-header, .table-header { padding: 12px 20px; border-bottom: 1px solid var(--border); background: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
-.log-header h3, .table-title { margin: 0; color: var(--nav); font-size: 0.95rem; font-weight: 700; }
+td { 
+    padding: 8px 4px; /* Menos espaço lateral */
+    border-bottom: 1px solid var(--border); 
+    color: var(--text-main); 
+    height: auto; /* Altura automática para aceitar duas linhas */
+    vertical-align: middle; 
+    white-space: nowrap; 
+    text-align: center;
+}
 
-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-th { padding: 12px 15px; text-align: left; color: var(--text-muted); font-weight: 700; border-bottom: 1px solid var(--border); background: #f8fafc; text-transform: uppercase; font-size: 0.7rem; white-space: nowrap; }
-td { padding: 8px 15px; border-bottom: 1px solid var(--border); color: var(--text-main); height: 40px; vertical-align: middle; white-space: nowrap; }
-.badge { padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; color: white; display: inline-block; min-width: 40px; text-align: center; }
+/* --- PRIMEIRA COLUNA FIXA (NOMES) --- */
 
-/* MODIFICADORES ESPECÍFICOS */
-.row-weekend { background-color: var(--row-weekend); }
-.input-divergent { border-color: var(--danger); color: var(--danger); background-color: #fee2e2; }
-.input-qty:disabled, .input-obs:disabled { background: var(--locked-bg); color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
-
-/* --- TRUQUE DO SCROLL NO TOPO --- */
-.scroll-top { transform: rotateX(180deg); }
-.scroll-top table { transform: rotateX(180deg); }
-
-/* --- TABELA COM PRIMEIRA COLUNA FIXA --- */
-/* Isso garante que a coluna de nomes nunca suma ao rolar para o lado */
-
-/* 1. Cabeçalho (Nome) Fixo */
+/* Cabeçalho (Nome) */
 table th:first-child {
     position: sticky;
     left: 0;
-    z-index: 20; /* Fica acima das outras células */
-    background-color: var(--nav); /* Cor do cabeçalho */
+    z-index: 20;
+    background-color: var(--nav);
     color: white;
     border-right: 2px solid rgba(0,0,0,0.1);
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    
+    /* MUDANÇA AQUI: Largura reduzida */
+    width: 110px !important;
+    min-width: 110px;
+    max-width: 110px;
+    text-align: left;
+    padding-left: 10px;
 }
 
-/* 2. Células (Nomes) Fixas */
+/* Células (Nomes dos Colaboradores) */
 table td:first-child {
     position: sticky;
     left: 0;
     z-index: 10;
-    background-color: var(--card); /* Fundo branco padrão */
+    background-color: var(--card);
     font-weight: 700;
     color: var(--nav);
     border-right: 2px solid var(--border);
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    
+    /* MUDANÇA AQUI: Quebra de linha */
+    width: 110px !important;
+    min-width: 110px;
+    max-width: 110px;
+    white-space: normal !important; /* Permite quebrar linha */
+    line-height: 1.2; /* Altura da linha menor para ficar bonito */
+    text-align: left;
+    padding-left: 10px;
+    font-size: 0.7rem; /* Nome um pouco menor para não estourar */
 }
 
-/* 3. Ajuste de cor para linhas alternadas (Zebrado) na coluna fixa */
-tr:nth-child(even) td:first-child {
-    background-color: var(--zebra-even);
-}
+/* Zebrado e Hover na coluna fixa */
+tr:nth-child(even) td:first-child { background-color: var(--zebra-even); }
+tr:hover td:first-child { background-color: var(--zebra-hover); color: var(--primary); }
 
-/* 4. Ajuste de cor ao passar o mouse na coluna fixa */
-tr:hover td:first-child {
-    background-color: var(--zebra-hover);
-    color: var(--primary);
-}
-
-/* 5. Ajuste específico para a Matriz Anual (se usar scroll top) */
-.scroll-top table th:first-child {
-    z-index: 20;
-    bottom: auto; 
-}
+/* Ajuste do Scroll no Topo */
+.scroll-top { transform: rotateX(180deg); }
+.scroll-top table { transform: rotateX(180deg); }
