@@ -1,19 +1,19 @@
 /**
  * assets/js/layout.js
- * ATUALIZADO: Layout limpo sem estilos inline para permitir responsividade via CSS.
+ * ATUALIZADO: Navbar responsiva com nova logo textual moderna.
  */
 
 function renderNavbar() {
-    // Evita renderizar duas vezes
+    // Evita renderizar duas vezes se já existir
     if (document.querySelector('.navbar')) return;
 
     const path = window.location.pathname;
-    // Não renderiza na tela de login
+    // Não renderiza na tela de login (index.html ou raiz)
     if (path.includes('index.html') || (path.endsWith('/') && path.length < 2) || path === '/') {
         return;
     }
 
-    // Identifica usuário
+    // Tenta identificar o usuário logado para mostrar no canto
     let nomeUsuario = 'Colaborador';
     if (typeof SESSAO_ATUAL !== 'undefined' && SESSAO_ATUAL && SESSAO_ATUAL.nome) {
         nomeUsuario = SESSAO_ATUAL.nome;
@@ -24,12 +24,13 @@ function renderNavbar() {
         } catch (e) { console.error(e); }
     }
 
-    // HTML da Navbar (Sem estilos inline de altura/width)
+    // HTML da Navbar (Estrutura limpa para CSS controlar)
     const navHTML = `
     <nav class="navbar">
         <div class="nav-container">
-            <div class="brand" onclick="window.location.href='produtividade.html'">
-                <img src="assets/img/logo.png" alt="Logo" class="logo-nav">
+            <div class="brand logo-text-container" onclick="window.location.href='produtividade.html'" style="cursor: pointer;">
+                <span class="logo-sub">Controle de</span>
+                <span class="logo-main">Produtividade</span>
             </div>
             
             <div class="nav-links">
@@ -48,16 +49,19 @@ function renderNavbar() {
     </nav>
     `;
 
+    // Insere a navbar no início do body
     document.body.insertAdjacentHTML('afterbegin', navHTML);
 
-    // Marca o link ativo
+    // Marca o link da página atual como ativo
     const page = path.split('/').pop();
     document.querySelectorAll('.nav-item').forEach(link => {
         const href = link.getAttribute('href');
+        // Verifica se é a página atual OU se é a home (produtividade) quando o caminho está vazio
         if (href === page || (page === '' && href === 'produtividade.html')) {
             link.classList.add('active');
         }
     });
 }
 
+// Executa a função quando o HTML terminar de carregar
 document.addEventListener("DOMContentLoaded", renderNavbar);
