@@ -1,16 +1,19 @@
 /**
  * assets/js/layout.js
- * ATUALIZADO: Logo aumentada para 75px e Navbar para 90px
+ * ATUALIZADO: Layout limpo sem estilos inline para permitir responsividade via CSS.
  */
 
 function renderNavbar() {
+    // Evita renderizar duas vezes
     if (document.querySelector('.navbar')) return;
 
     const path = window.location.pathname;
+    // Não renderiza na tela de login
     if (path.includes('index.html') || (path.endsWith('/') && path.length < 2) || path === '/') {
         return;
     }
 
+    // Identifica usuário
     let nomeUsuario = 'Colaborador';
     if (typeof SESSAO_ATUAL !== 'undefined' && SESSAO_ATUAL && SESSAO_ATUAL.nome) {
         nomeUsuario = SESSAO_ATUAL.nome;
@@ -21,13 +24,12 @@ function renderNavbar() {
         } catch (e) { console.error(e); }
     }
 
+    // HTML da Navbar (Sem estilos inline de altura/width)
     const navHTML = `
     <nav class="navbar">
-        <div class="nav-left">
-            <div class="brand" onclick="window.location.href='produtividade.html'" 
-                 style="display:flex; align-items:center; cursor:pointer; background:transparent !important; border:none !important; padding:0; margin-right: 30px;">
-                <img src="assets/img/logo.png" alt="Logo" class="logo-nav" 
-                     style="height: 75px; width: auto; display: block; background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important;">
+        <div class="nav-container">
+            <div class="brand" onclick="window.location.href='produtividade.html'">
+                <img src="assets/img/logo.png" alt="Logo" class="logo-nav">
             </div>
             
             <div class="nav-links">
@@ -41,13 +43,14 @@ function renderNavbar() {
         
         <div class="user-area">
             <span class="user-name">${nomeUsuario}</span>
-            <span class="logout-btn" onclick="logout()" style="color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600;">Sair</span>
+            <span class="logout-btn" onclick="logout()">Sair</span>
         </div>
     </nav>
     `;
 
     document.body.insertAdjacentHTML('afterbegin', navHTML);
 
+    // Marca o link ativo
     const page = path.split('/').pop();
     document.querySelectorAll('.nav-item').forEach(link => {
         const href = link.getAttribute('href');
