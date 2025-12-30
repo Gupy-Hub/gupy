@@ -3,77 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <title>Produtividade</title>
+    
     <link rel="icon" href="assets/img/favicon.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="assets/css/style.css">
-    <style>.divider-row{background:var(--nav)!important;color:white!important;font-weight:700;} #import-log{position:fixed;bottom:20px;right:20px;background:white;padding:20px;border-left:5px solid var(--success);box-shadow:0 10px 40px rgba(0,0,0,0.15);display:none;}</style>
+    
+    <style>
+        .divider-row { background: var(--nav) !important; color: white !important; font-weight: 700; } 
+        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-left: 5px solid var(--success); box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; z-index: 2000; border-radius: 4px; }
+        
+        /* Ajuste do cabeçalho fixo para não cobrir o conteúdo */
+        .nav-tools-container {
+            position: fixed;
+            top: 15px; 
+            right: 250px; 
+            z-index: 1100;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
-<div style="position:fixed;top:15px;right:250px;z-index:1100;display:flex;gap:10px;">
-    <div class="nav-tools" style="background:rgba(255,255,255,0.1);padding:6px 15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);display:flex;gap:10px;">
-        <select id="view-selector" onchange="ajustarSeletores()" style="background:transparent;border:none;color:white;font-weight:600;"><option value="dia" style="color:#333">🔍 Dia</option><option value="semana" style="color:#333">📅 Semana</option><option value="mes" style="color:#333">📊 Mês</option></select>
-        <input type="date" id="select-dia" onchange="carregarDados()" style="background:transparent;border:none;color:white;">
-        <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()" style="background:transparent;border:none;color:white;">
-        <select id="select-semana" class="hidden" onchange="alternarVisao()" style="background:transparent;border:none;color:white;"><option value="1" style="color:#333">Sem 1</option><option value="2" style="color:#333">Sem 2</option><option value="3" style="color:#333">Sem 3</option><option value="4" style="color:#333">Sem 4</option><option value="5" style="color:#333">Sem 5</option></select>
+
+<div class="nav-tools-container">
+    <div class="nav-tools" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); display:flex; gap:10px;">
+        <select id="view-selector" onchange="ajustarSeletores()" style="background:transparent; border:none; color:white; font-weight:600; cursor:pointer;">
+            <option value="dia" style="color:#333">🔍 Dia Específico</option>
+            <option value="semana" style="color:#333">📅 Por Semana</option>
+            <option value="mes" style="color:#333">📊 Mês Completo</option>
+        </select>
+        
+        <input type="date" id="select-dia" onchange="carregarDados()" style="background:transparent; border:none; color:white;">
+        <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()" style="background:transparent; border:none; color:white;">
+        <select id="select-semana" class="hidden" onchange="alternarVisao()" style="background:transparent; border:none; color:white;">
+            <option value="1" style="color:#333">Semana 1</option>
+            <option value="2" style="color:#333">Semana 2</option>
+            <option value="3" style="color:#333">Semana 3</option>
+            <option value="4" style="color:#333">Semana 4</option>
+            <option value="5" style="color:#333">Semana 5</option>
+        </select>
     </div>
-    <button onclick="document.getElementById('excel-files').click()" style="background:var(--accent);color:white;border:none;padding:8px 15px;border-radius:6px;font-weight:600;cursor:pointer;">Importar</button>
+
+    <button onclick="document.getElementById('excel-files').click()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:600; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        Importar Excel
+    </button>
     <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
 </div>
+
 <div class="container">
-    <div class="dynamic-panel" style="background:var(--card);padding:20px;border-radius:8px;margin-bottom:20px;border-top:4px solid var(--primary);">
-        <h2 id="panel-titulo" style="margin:0 0 15px 0;font-size:1.1rem;color:var(--nav);">Visão Geral</h2>
-        <div class="stats-grid"><div class="stat-card"><div class="stat-label">Total Geral</div><div class="stat-value" id="p-total">0</div></div><div class="stat-card"><div class="stat-label">Média Time</div><div class="stat-value" id="p-media">0</div></div><div class="stat-card"><div class="stat-label">Assistentes</div><div class="stat-value" id="p-headcount">0</div></div></div>
+    
+    <div class="dynamic-panel" style="background:var(--card); padding:20px; border-radius:8px; margin-bottom:20px; border-top:4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <h2 id="panel-titulo" style="margin:0 0 15px 0; font-size:1.1rem; color:var(--nav);">Visão Geral</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Produção Total</div>
+                <div class="stat-value" id="p-total">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Média do Time</div>
+                <div class="stat-value" id="p-media">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Assistentes Ativos</div>
+                <div class="stat-value" id="p-headcount">0</div>
+            </div>
+        </div>
     </div>
-    <div class="table-wrap"><table><thead id="main-thead"><tr><th>Assistente</th><th>Produção</th><th>FIFO</th><th>G.T.</th><th>G.P.</th><th>P.FC</th><th>Meta</th><th>Status</th></tr></thead><tbody id="tabela-corpo"></tbody></table></div>
+
+    <div class="table-wrap">
+        <table>
+            <thead id="main-thead">
+                <tr>
+                    <th>Assistente</th>
+                    <th style="text-align:center; color:var(--primary);">Produção</th>
+                    <th style="text-align:center">FIFO</th>
+                    <th style="text-align:center">G.T.</th>
+                    <th style="text-align:center">G.P.</th>
+                    <th style="text-align:center">P.FC</th>
+                    <th style="text-align:center">Meta (Período)</th> <th style="text-align:center">Status</th>        </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+                </tbody>
+        </table>
+    </div>
 </div>
-<div id="import-log"><h4 style="margin:0">Log</h4><div id="log-content"></div><button onclick="this.parentElement.style.display='none'" style="margin-top:10px;width:100%;">Fechar</button></div>
+
+<div id="import-log">
+    <h4 style="margin:0; color:var(--nav); margin-bottom:10px;">Relatório de Importação</h4>
+    <div id="log-content" style="font-size:0.9rem; color:#475569;"></div>
+    <button onclick="this.parentElement.style.display='none'" style="margin-top:15px; width:100%; padding:8px; background:var(--nav); color:white; border:none; border-radius:4px; cursor:pointer;">Fechar</button>
+</div>
+
 <script src="assets/js/config.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/layout.js"></script>
+
 <script>
-    let dadosGlobais=[], metasGlobais=[];
-    const ontem=new Date(); ontem.setDate(ontem.getDate()-1);
-    document.getElementById('select-dia').value=ontem.toISOString().split('T')[0];
-    document.getElementById('select-mes').value=ontem.toISOString().substring(0,7);
-    function ajustarSeletores(){ const v=document.getElementById('view-selector').value; const d=document.getElementById('select-dia'),m=document.getElementById('select-mes'),s=document.getElementById('select-semana'); d.classList.add('hidden');m.classList.add('hidden');s.classList.add('hidden'); if(v==='dia') d.classList.remove('hidden'); else if(v==='semana'){s.classList.remove('hidden');m.classList.remove('hidden');} else m.classList.remove('hidden'); carregarDados(); }
-    function sincronizarMes(){ document.getElementById('select-dia').value=document.getElementById('select-mes').value+'-01'; carregarDados(); }
-    async function carregarDados(){
-        const v=document.getElementById('view-selector').value; const mes=v==='dia'?document.getElementById('select-dia').value.substring(0,7):document.getElementById('select-mes').value;
-        const{data:p}=await _supabase.from('producao').select('*,usuarios(*)').gte('data_referencia',mes+'-01').lte('data_referencia',mes+'-31').order('data_referencia',{ascending:false});
-        const{data:m}=await _supabase.from('metas').select('*');
-        dadosGlobais=p||[]; metasGlobais=m||[]; alternarVisao();
+    let dadosGlobais = [];
+    let metasGlobais = [];
+    
+    // Inicialização
+    const ontem = new Date(); 
+    ontem.setDate(ontem.getDate() - 1);
+    
+    // Define datas iniciais (Ontem)
+    document.getElementById('select-dia').value = ontem.toISOString().split('T')[0];
+    document.getElementById('select-mes').value = ontem.toISOString().substring(0, 7);
+
+    // Ajusta visual dos filtros
+    function ajustarSeletores() { 
+        const v = document.getElementById('view-selector').value; 
+        const d = document.getElementById('select-dia');
+        const m = document.getElementById('select-mes');
+        const s = document.getElementById('select-semana'); 
+        
+        d.classList.add('hidden'); m.classList.add('hidden'); s.classList.add('hidden'); 
+        
+        if(v === 'dia') d.classList.remove('hidden'); 
+        else if(v === 'semana') { s.classList.remove('hidden'); m.classList.remove('hidden'); } 
+        else m.classList.remove('hidden'); 
+        
+        carregarDados(); 
     }
-    function getWeek(d){ const date=new Date(d+'T12:00:00'); const first=new Date(date.getFullYear(),date.getMonth(),1); return Math.ceil((date.getDate()+first.getDay())/7); }
-    function alternarVisao(){
-        const v=document.getElementById('view-selector').value; let f=[], t='';
-        if(v==='dia'){ const d=document.getElementById('select-dia').value; f=dadosGlobais.filter(x=>x.data_referencia===d); t='Dia: '+d.split('-').reverse().join('/'); }
-        else if(v==='semana'){ const s=parseInt(document.getElementById('select-semana').value); f=dadosGlobais.filter(x=>getWeek(x.data_referencia)===s); t='Semana '+s; }
-        else { f=dadosGlobais; t='Mês'; }
-        
-        let stats={}; f.forEach(x=>{ if(!x.usuarios)return; const u=x.usuario_id; if(!stats[u]) stats[u]={n:x.usuarios.nome,q:0,fifo:0,gt:0,gp:0,fc:0}; stats[u].q+=x.quantidade; stats[u].fifo+=x.fifo; stats[u].gt+=x.gradual_total; stats[u].gp+=x.gradual_parcial; stats[u].fc+=x.perfil_fc; });
-        const arr=Object.values(stats).sort((a,b)=>b.q-a.q);
-        
-        const tot=arr.reduce((a,b)=>a+b.q,0); document.getElementById('p-total').innerText=tot; document.getElementById('p-headcount').innerText=arr.length; document.getElementById('p-media').innerText=arr.length?Math.round(tot/arr.length):0; document.getElementById('panel-titulo').innerText=t;
-        
-        let h=''; arr.forEach(x=>{ h+=`<tr><td>${x.n}</td><td style="font-weight:700;color:var(--primary)">${x.q}</td><td>${x.fifo}</td><td>${x.gt}</td><td>${x.gp}</td><td>${x.fc}</td><td>-</td><td>-</td></tr>`; });
-        document.getElementById('tabela-corpo').innerHTML=h||'<tr><td colspan="8">Sem dados</td></tr>';
+
+    function sincronizarMes() { 
+        document.getElementById('select-dia').value = document.getElementById('select-mes').value + '-01'; 
+        carregarDados(); 
     }
-    async function importarArquivos(){ 
-        const fs=document.getElementById('excel-files').files; let l={s:0,d:0};
-        for(let f of fs){
-            const n=f.name.replace('.xlsx',''); if(!/^\d{8}$/.test(n))continue;
-            const dr=`${n.substring(4,8)}-${n.substring(2,4)}-${n.substring(0,2)}`;
-            const b=await f.arrayBuffer(); const wb=XLSX.read(b,{type:'array'}); const j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-            for(let r of j){
-                if(!r.id_assistente)continue;
-                const{data:e}=await _supabase.from('producao').select('id').eq('usuario_id',r.id_assistente).eq('data_referencia',dr).maybeSingle();
-                if(e)l.d++; else{ await _supabase.from('producao').insert({usuario_id:r.id_assistente,fifo:r.documentos_validados_fifo||0,gradual_total:r.documentos_validados_gradual_total||0,gradual_parcial:r.documentos_validados_gradual_parcial||0,perfil_fc:r.documentos_validados_perfil_fc||0,quantidade:r.documentos_validados||0,data_referencia:dr}); l.s++; }
+
+    // Busca dados no Supabase
+    async function carregarDados() {
+        const v = document.getElementById('view-selector').value; 
+        const mes = v === 'dia' ? document.getElementById('select-dia').value.substring(0, 7) : document.getElementById('select-mes').value;
+        
+        // Pega producao do mes inteiro para poder filtrar localmente (mais rapido na troca de abas)
+        const { data: p } = await _supabase.from('producao')
+            .select('*, usuarios(*)')
+            .gte('data_referencia', mes + '-01')
+            .lte('data_referencia', mes + '-31')
+            .order('data_referencia', {ascending: false});
+            
+        // Pega histórico de metas
+        const { data: m } = await _supabase.from('metas').select('*').order('data_inicio', {ascending: false});
+        
+        dadosGlobais = p || []; 
+        metasGlobais = m || []; 
+        alternarVisao();
+    }
+
+    function getWeek(d) { 
+        const date = new Date(d + 'T12:00:00'); 
+        const first = new Date(date.getFullYear(), date.getMonth(), 1); 
+        return Math.ceil((date.getDate() + first.getDay()) / 7); 
+    }
+
+    // Motor de Cálculo e Renderização
+    function alternarVisao() {
+        const v = document.getElementById('view-selector').value; 
+        let filtrados = []; 
+        let titulo = '';
+        let dataFimPeriodo = ''; // Usada para achar a meta vigente
+
+        if (v === 'dia') { 
+            const d = document.getElementById('select-dia').value; 
+            filtrados = dadosGlobais.filter(x => x.data_referencia === d); 
+            titulo = 'Dia: ' + d.split('-').reverse().join('/'); 
+            dataFimPeriodo = d;
+        } 
+        else if (v === 'semana') { 
+            const s = parseInt(document.getElementById('select-semana').value); 
+            filtrados = dadosGlobais.filter(x => getWeek(x.data_referencia) === s); 
+            titulo = 'Semana ' + s;
+            dataFimPeriodo = document.getElementById('select-mes').value + '-28'; // Aproximação para meta
+        } 
+        else { 
+            filtrados = dadosGlobais; 
+            titulo = 'Mês Completo'; 
+            dataFimPeriodo = document.getElementById('select-mes').value + '-28';
+        }
+        
+        // Agregação por Usuário
+        let stats = {}; 
+        filtrados.forEach(x => { 
+            if(!x.usuarios || x.usuarios.funcao !== 'Assistente') return; 
+            const u = x.usuario_id; 
+            if(!stats[u]) stats[u] = { 
+                id: u,
+                nome: x.usuarios.nome, 
+                q: 0, fifo: 0, gt: 0, gp: 0, fc: 0,
+                diasTrabalhados: new Set()
+            }; 
+            stats[u].q += x.quantidade; 
+            stats[u].fifo += x.fifo; 
+            stats[u].gt += x.gradual_total; 
+            stats[u].gp += x.gradual_parcial; 
+            stats[u].fc += x.perfil_fc; 
+            stats[u].diasTrabalhados.add(x.data_referencia);
+        });
+
+        const lista = Object.values(stats).sort((a, b) => b.q - a.q);
+        
+        // Atualiza Cards
+        const totalGeral = lista.reduce((acc, curr) => acc + curr.q, 0); 
+        document.getElementById('p-total').innerText = totalGeral.toLocaleString(); 
+        document.getElementById('p-headcount').innerText = lista.length; 
+        document.getElementById('p-media').innerText = lista.length ? Math.round(totalGeral / lista.length).toLocaleString() : 0; 
+        document.getElementById('panel-titulo').innerText = titulo;
+        
+        // Renderiza Tabela
+        let html = ''; 
+        lista.forEach(item => {
+            const diasCount = item.diasTrabalhados.size || 1;
+            
+            // 1. Busca Meta do Usuário (vigente na data do filtro)
+            const metaUser = metasGlobais.find(m => m.usuario_id === item.id && m.data_inicio <= dataFimPeriodo);
+            const metaDiaria = metaUser ? metaUser.valor_meta : 650; // 650 padrão se não achar
+            
+            // 2. Calcula Meta do Período (Meta Diária * Dias Trabalhados naquele período)
+            // Se for visão Dia, diasCount será 1. Se for Mês, será 20, etc.
+            const metaPeriodo = metaDiaria * diasCount;
+            
+            // 3. Status
+            const atingiu = item.q >= metaPeriodo;
+            const pct = metaPeriodo > 0 ? Math.round((item.q / metaPeriodo) * 100) : 0;
+            const badgeClass = atingiu ? 'var(--success)' : 'var(--danger)';
+            const badgeText = atingiu ? 'Sim' : 'Não';
+            
+            html += `
+            <tr>
+                <td style="font-weight:600; color:var(--nav);">${item.nome}</td>
+                <td style="font-weight:700; color:var(--primary); text-align:center;">${item.q.toLocaleString()}</td>
+                <td style="text-align:center;">${item.fifo}</td>
+                <td style="text-align:center;">${item.gt}</td>
+                <td style="text-align:center;">${item.gp}</td>
+                <td style="text-align:center;">${item.fc}</td>
+                <td style="text-align:center; font-weight:600; color:var(--text-muted);">${metaPeriodo.toLocaleString()}</td>
+                <td style="text-align:center;">
+                    <span class="badge" style="background:${badgeClass}; font-size:0.75rem; padding:4px 8px;">
+                        ${badgeText} (${pct}%)
+                    </span>
+                </td>
+            </tr>`; 
+        });
+        
+        document.getElementById('tabela-corpo').innerHTML = html || '<tr><td colspan="8" style="text-align:center; padding:20px;">Nenhum dado encontrado para este período.</td></tr>';
+    }
+
+    // Função de Importação (Excel)
+    async function importarArquivos() { 
+        const files = document.getElementById('excel-files').files; 
+        let log = { success: 0, dups: 0 };
+        
+        for(let f of files){
+            // Validação simples do nome do arquivo (ex: 30102025.xlsx)
+            const name = f.name.replace('.xlsx', ''); 
+            if(!/^\d{8}$/.test(name)) continue;
+            
+            const dateRef = `${name.substring(4, 8)}-${name.substring(2, 4)}-${name.substring(0, 2)}`;
+            
+            const buffer = await f.arrayBuffer(); 
+            const workbook = XLSX.read(buffer, { type: 'array' }); 
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            for(let row of json){
+                if(!row.id_assistente) continue;
+                
+                // Verifica duplicidade antes de inserir
+                const { data: exists } = await _supabase.from('producao')
+                    .select('id')
+                    .eq('usuario_id', row.id_assistente)
+                    .eq('data_referencia', dateRef)
+                    .maybeSingle();
+                
+                if(exists) {
+                    log.dups++; 
+                } else { 
+                    await _supabase.from('producao').insert({
+                        usuario_id: row.id_assistente,
+                        fifo: row.documentos_validados_fifo || 0,
+                        gradual_total: row.documentos_validados_gradual_total || 0,
+                        gradual_parcial: row.documentos_validados_gradual_parcial || 0,
+                        perfil_fc: row.documentos_validados_perfil_fc || 0,
+                        quantidade: row.documentos_validados || 0,
+                        data_referencia: dateRef
+                    }); 
+                    log.success++; 
+                }
             }
         }
-        document.getElementById('log-content').innerText=`Sucesso: ${l.s} | Duplicados: ${l.d}`; document.getElementById('import-log').style.display='block'; carregarDados();
+        
+        document.getElementById('log-content').innerHTML = `
+            <strong>Importação Concluída!</strong><br>
+            ✅ Sucesso: ${log.success} registros.<br>
+            ⚠️ Duplicados (ignorados): ${log.dups} registros.
+        `; 
+        document.getElementById('import-log').style.display = 'block'; 
+        carregarDados();
     }
+    
+    // Inicia
     ajustarSeletores();
 </script>
 </body>
