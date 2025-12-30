@@ -1,155 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Controle de Produtividade</title>
-    
-    <link rel="icon" href="assets/img/favicon.png" type="image/png">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
-
-    <style>
-        body { 
-            padding-top: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            background: #f3f5f8;
-        }
-        .login-wrapper { width: 100%; max-width: 400px; padding: 20px; }
-        
-        .brand-login { text-align: center; margin-bottom: 35px; }
-        
-        /* Ajuste específico para o Logo da Index se precisar */
-        .logo-login { 
-            max-width: 280px; 
-            height: auto; 
-            display: block; 
-            margin: 0 auto; 
-        }
-
-        .login-card { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            border: 1px solid var(--border); 
-        }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--text-main); }
-        
-        .btn-login { 
-            width: 100%; 
-            padding: 14px; 
-            background: var(--nav); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 1rem; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: 0.2s; 
-            margin-top: 10px; 
-        }
-        .btn-login:hover { background: var(--primary); transform: translateY(-1px); }
-        
-        .error-msg { 
-            color: var(--danger); 
-            font-size: 0.85rem; 
-            text-align: center; 
-            margin-top: 15px; 
-            display: none; 
-            background: #fee2e2; 
-            padding: 10px; 
-            border-radius: 6px; 
-            font-weight: 600; 
-        }
-        .footer-text { text-align: center; margin-top: 30px; color: var(--text-muted); font-size: 0.75rem; }
-    </style>
+    <link rel="stylesheet" href="assets/css/logo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-
-<div class="login-wrapper">
-    <div class="brand-login">
-        <img src="assets/img/logoindex.png" alt="Controle de Produtividade" class="logo-login">
-    </div>
-    
-    <div class="login-card">
-        <div class="input-group">
-            <label>ID do Funcionário</label>
-            <input type="number" id="login-id" placeholder="Digite seu ID" onkeypress="handleEnter(event)">
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-logo-container">
+            <span class="logo-sub">Controle de</span>
+            <span class="logo-main">Produtividade</span>
         </div>
 
-        <div class="input-group">
-            <label>Senha de Acesso</label>
-            <input type="password" id="senha" placeholder="••••••••" onkeypress="handleEnter(event)">
-        </div>
-
-        <button class="btn-login" onclick="fazerLogin()" id="btn-entrar">Acessar Sistema</button>
-        <div class="error-msg" id="error-msg">ID ou senha incorretos.</div>
-    </div>
-    
-    <div class="footer-text">
-        &copy; 2025 Gestão Integrada
-    </div>
-</div>
-
-<script src="assets/js/config.js"></script>
-<script>
-    // Verifica se já está logado
-    if(localStorage.getItem('usuario')) window.location.href = 'produtividade.html';
-
-    function handleEnter(e) { 
-        if(e.key === 'Enter') fazerLogin(); 
-    }
-
-    async function fazerLogin() {
-        const idVal = document.getElementById('login-id').value.trim();
-        const passVal = document.getElementById('senha').value.trim();
-        const btn = document.getElementById('btn-entrar');
-        const msg = document.getElementById('error-msg');
-
-        msg.style.display = 'none';
+        <h2 style="margin-bottom: 25px; color: var(--nav);">Bem-vindo</h2>
         
-        if(!idVal || !passVal) { 
-            msg.innerText = "Por favor, informe ID e Senha."; 
-            msg.style.display = 'block'; 
-            return; 
-        }
+        <form onsubmit="fazerLogin(event)">
+            <div class="form-group" style="text-align: left;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">E-mail</label>
+                <input type="email" id="emailLogin" required style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div class="form-group" style="text-align: left; margin-top: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Senha</label>
+                <input type="password" id="senhaLogin" required style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <button type="submit" class="btn-save" style="margin-top: 25px;">Entrar no Sistema</button>
+        </form>
+        
+        <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+            Ainda não tem conta? <a href="cadastro.html" style="color: var(--accent); text-decoration: none; font-weight: 600;">Criar conta</a>
+        </p>
+    </div>
 
-        btn.disabled = true;
-        btn.innerText = "Entrando...";
-
-        try {
-            const { data, error } = await _supabase
-                .from('usuarios')
-                .select('*')
-                .eq('id', idVal)
-                .eq('senha', passVal)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (data) {
-                localStorage.setItem('usuario', JSON.stringify(data));
-                window.location.href = 'produtividade.html';
-            } else { 
-                throw new Error("Não encontrado"); 
-            }
-
-        } catch (err) {
-            console.error(err);
-            msg.innerText = "Credenciais inválidas."; 
-            msg.style.display = 'block';
-            btn.disabled = false;
-            btn.innerText = "Acessar Sistema";
-        }
-    }
-</script>
-
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/dados.js"></script>
+    <script src="assets/js/logo.js"></script>
+    <script src="assets/js/login.js"></script>
 </body>
 </html>
