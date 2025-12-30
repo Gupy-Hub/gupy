@@ -1,71 +1,154 @@
 :root { 
-    /* Cores */
-    --primary: #0045d0; --accent: #2662ea; --nav: #0d1b2a;
-    --success: #00d09e; --danger: #ef4444; --warning: #f59e0b;
-    --clt: #0077b6; --pj: #00b4d8; --fifo: #f59e0b; 
-    --gt: #6b7280; --gp: #8b5cf6; --fc: #ec4899;
-    --bg: #f3f5f8; --card: #ffffff; --border: #e2e8f0;
-    --text-main: #1f2937; --text-muted: #64748b;
-    --zebra-even: #f8fafc; --zebra-hover: #eff6ff;
-    --row-weekend: #fefce8; --locked-bg: #e2e8f0;
+    /* --- PALETA DE CORES --- */
+    --primary: #0045d0;    /* Azul Institucional */
+    --accent: #2662ea;     /* Azul Vibrante (Hover) */
+    --nav: #0d1b2a;        /* Azul Escuro (Navbar/Textos Fortes) */
+    
+    --success: #00d09e;    /* Verde Sucesso */
+    --danger: #ef4444;     /* Vermelho Erro */
+    --warning: #f59e0b;    /* Laranja Alerta */
+
+    /* Cores de Categorias (Gráficos/Badges) */
+    --clt: #0077b6; 
+    --pj: #00b4d8; 
+    --fifo: #f59e0b; 
+    --gt: #6b7280; 
+    --gp: #8b5cf6; 
+    --fc: #ec4899;
+
+    /* Estrutura & Fundo */
+    --bg: #f3f5f8;         /* Fundo da Página */
+    --card: #ffffff;       /* Fundo dos Cards */
+    --border: #e2e8f0;     /* Bordas Suaves */
+    --text-main: #1f2937;  /* Texto Principal */
+    --text-muted: #64748b; /* Texto Secundário */
+    
+    /* Tabelas */
+    --zebra-even: #f8fafc; /* Linha Par */
+    --zebra-hover: #eff6ff;/* Hover na Linha */
+    --row-weekend: #fefce8;/* Fundo de Fim de Semana */
+    --locked-bg: #e2e8f0;  /* Campo Travado/Desabilitado */
 }
 
-body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-top: 80px; color: var(--text-main); }
+/* --- GERAL --- */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background: var(--bg); 
+    margin: 0; 
+    padding-top: 80px; /* Espaço para a Navbar Fixa */
+    color: var(--text-main); 
+}
 
-/* NAVBAR */
-.navbar { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: var(--nav); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+/* --- NAVBAR & LOGO (CORRIGIDO) --- */
+.navbar { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    height: 70px; 
+    background: var(--nav); 
+    color: white; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 40px; 
+    z-index: 1000; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+}
+
 .nav-left { display: flex; align-items: center; gap: 40px; }
-.logo-nav { height: 45px; width: auto; transition: 0.2s; }
+
+/* Container da Logo na Barra - Fundo Transparente */
+.brand {
+    background-color: transparent !important;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.logo-nav { height: 45px; width: auto; transition: 0.2s; display: block; }
 .logo-nav:hover { opacity: 0.9; }
+.logo-login { max-width: 280px; height: auto; display: block; margin: 0 auto; }
+
 .nav-links { display: flex; gap: 30px; }
-.nav-item { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.3s; padding-bottom: 23px; border-bottom: 3px solid transparent; }
+.nav-item { 
+    color: #94a3b8; 
+    text-decoration: none; 
+    font-size: 0.9rem; 
+    font-weight: 500; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    padding-bottom: 23px; 
+    border-bottom: 3px solid transparent; 
+}
 .nav-item:hover, .nav-item.active { color: white; border-bottom-color: var(--accent); }
+
 .user-area { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px; }
 .user-name { font-weight: 600; font-size: 0.85rem; color: white; display: block; }
 .logout-btn { color: #fca5a5; font-size: 0.7rem; cursor: pointer; font-weight: 600; }
 
-/* GERAL */
+/* --- LAYOUT --- */
 .container { max-width: 1400px; margin: 0 auto; padding: 30px; }
 .hidden { display: none !important; }
-.top-controls { display: flex; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); align-items: flex-end; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+
+/* --- BARRA DE AÇÕES / FILTROS --- */
+.action-bar, .top-controls { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: var(--card); 
+    padding: 15px 20px; 
+    border-radius: 8px; 
+    border: 1px solid var(--border); 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
+    flex-wrap: wrap; 
+    gap: 15px; 
+}
+.action-title { font-size: 1.1rem; font-weight: 700; color: var(--nav); margin: 0; }
+.tools-group { display: flex; gap: 10px; align-items: center; }
+.tools-group select, .tools-group input, .control-group select, .control-group input { 
+    background: #f8fafc; border: 1px solid var(--border); color: var(--text-main); 
+    padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; width: auto; outline: none;
+}
+.btn-import { background: var(--accent); color: white; border: none; padding: 9px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+.btn-import:hover { background: var(--primary); }
 .control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
 .control-group label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-select, input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter'; font-size: 0.85rem; color: var(--text-main); outline: none; background: #fff; width: 100%; box-sizing: border-box; }
 
-/* CARDS */
+/* --- CARDS DE ESTATÍSTICA --- */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
 .stat-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
 .stat-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
 .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--nav); }
-.stat-sub { font-size: 0.75rem; margin-top: 5px; color: var(--text-muted); }
 
-/* TABELAS E FORMS */
-.table-wrap, .table-card, .log-section, .card-form { background: var(--card); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-.log-header, .table-header, .card-header { padding: 12px 20px; border-bottom: 1px solid var(--border); background: #f8fafc; display: flex; justify-content: space-between; align-items: center; color: var(--nav); font-weight: 700; font-size: 0.95rem; }
-.logo-login { max-width: 280px; height: auto; display: block; margin: 0 auto; }
+/* --- CONTAINERS GERAIS --- */
+.table-wrap, .table-card, .log-section, .card-form, .dynamic-panel { background: var(--card); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.log-header, .table-header, .card-header { padding: 12px 20px; border-bottom: 1px solid var(--border); background: #f8fafc; display: flex; justify-content: space-between; align-items: center; color: var(--nav); font-size: 0.95rem; font-weight: 700; }
 
-/* TABELA OTIMIZADA */
+/* --- TABELAS OTIMIZADAS --- */
 table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
 th { padding: 10px 4px; text-align: center; color: var(--text-muted); font-weight: 700; border-bottom: 1px solid var(--border); background: #f8fafc; text-transform: uppercase; font-size: 0.7rem; white-space: nowrap; }
 td { padding: 8px 4px; border-bottom: 1px solid var(--border); color: var(--text-main); height: auto; vertical-align: middle; white-space: nowrap; text-align: center; }
 .badge { padding: 3px 6px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; color: white; display: inline-block; min-width: 50px; text-align: center; }
 
-/* ESPECIAIS */
+/* --- ESTILOS DE LINHAS ESPECIAIS --- */
 .row-weekend { background-color: var(--row-weekend); }
 .input-divergent { border-color: var(--danger); color: var(--danger); background-color: #fee2e2; }
 .input-qty:disabled, .input-obs:disabled { background: var(--locked-bg); color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
 
-/* SCROLL NO TOPO */
+/* --- SCROLL NO TOPO --- */
 .scroll-top { transform: rotateX(180deg); }
 .scroll-top table { transform: rotateX(180deg); }
 
-/* COLUNA FIXA INTELIGENTE */
+/* --- COLUNA FIXA INTELIGENTE (NOMES) --- */
 table th:first-child { position: sticky; left: 0; z-index: 20; background-color: var(--nav); color: white; border-right: 2px solid rgba(0,0,0,0.1); width: 110px !important; min-width: 110px; max-width: 110px; text-align: left; padding-left: 10px; }
 table td:first-child { position: sticky; left: 0; z-index: 10; background-color: var(--card); font-weight: 700; color: var(--nav); border-right: 2px solid var(--border); width: 110px !important; min-width: 110px; max-width: 110px; white-space: normal !important; line-height: 1.2; text-align: left; padding-left: 10px; font-size: 0.7rem; }
 tr:nth-child(even) td:first-child { background-color: var(--zebra-even); }
 tr:hover td:first-child { background-color: var(--zebra-hover); color: var(--primary); }
 
-/* MODAL */
+/* --- MODAL --- */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
 .modal { background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 30px; animation: slideUp 0.3s ease; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
