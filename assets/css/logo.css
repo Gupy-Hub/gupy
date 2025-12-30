@@ -1,0 +1,60 @@
+/* assets/css/logo.css
+   OBJETIVO: Estilos exclusivos da Logomarca.
+   Mantenha este arquivo separado para proteger a identidade visual.
+*/
+
+/* Container principal da logo na navbar */
+.brand {
+    margin-right: 40px;
+    display: flex;
+    flex-direction: column; /* Empilha o texto verticalmente */
+    justify-content: center;
+    height: 100%;
+    white-space: nowrap; /* Impede quebra de linha no nome */
+    transition: transform 0.2s ease;
+}
+
+/* Efeito sutil ao passar o mouse sobre a logo */
+.brand:hover {
+    transform: scale(1.02);
+}
+
+/* Ajuste fino de alinhamento vertical */
+.logo-text-container {
+    margin-top: -2px; 
+}
+
+/* A parte menor "Controle de" */
+.logo-sub {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8; /* Cor cinza claro da paleta */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    display: block;
+}
+
+/* A parte principal "Produtividade" */
+.logo-main {
+    font-size: 1.4rem;
+    font-weight: 800; /* Extra negrito */
+    color: white;
+    letter-spacing: -0.5px; /* Letras mais juntas para visual moderno */
+    line-height: 1.1;
+    display: block;
+}
+
+/* --- RESPONSIVIDADE DA LOGO --- */
+
+/* Celulares (até 768px) */
+@media (max-width: 768px) {
+    .brand { 
+        margin-right: 20px; 
+        height: 60px; /* Altura da navbar mobile */
+    }
+
+    /* Reduz um pouco o tamanho da logo de texto no celular */
+    .logo-sub { font-size: 0.65rem; }
+    .logo-main { font-size: 1.2rem; }
+}
