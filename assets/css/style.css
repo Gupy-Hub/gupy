@@ -45,7 +45,7 @@ body {
     top: 0; 
     left: 0; 
     right: 0; 
-    height: 70px; 
+    height: 80px; 
     background: var(--nav); 
     color: white; 
     display: flex; 
@@ -60,15 +60,17 @@ body {
 
 /* Container da Logo na Barra - Fundo Transparente */
 .brand {
-    background-color: transparent !important;
-    padding: 0;
-    margin: 0;
     display: flex;
     align-items: center;
+    height: 100%;
 }
 
-.logo-nav { height: 45px; width: auto; transition: 0.2s; display: block; }
+.logo-nav { height: 64px; width: auto; transition: 0.2s; display: block; }
 .logo-nav:hover { opacity: 0.9; }
+.logo-nav {
+    height: 64px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+}
 .logo-login { max-width: 280px; height: auto; display: block; margin: 0 auto; }
 
 .nav-links { display: flex; gap: 30px; }
