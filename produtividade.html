@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtividade</title>
     
     <link rel="icon" href="assets/img/favicon.png" type="image/png">
@@ -12,48 +13,106 @@
     <link rel="stylesheet" href="assets/css/style.css">
     
     <style>
-        .divider-row { background: var(--nav) !important; color: white !important; font-weight: 700; } 
-        #import-log { position: fixed; bottom: 20px; right: 20px; background: white; padding: 20px; border-left: 5px solid var(--success); box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; z-index: 2000; border-radius: 4px; }
-        
-        /* Ajuste do cabeçalho fixo para não cobrir o conteúdo */
-        .nav-tools-container {
-            position: fixed;
-            top: 15px; 
-            right: 250px; 
-            z-index: 1100;
+        /* BARRA DE AÇÕES (FILTROS) - NOVO DESIGN */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            flex-wrap: wrap; /* Permite quebrar linha em celular */
+            gap: 15px;
+        }
+
+        .action-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--nav);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tools-group {
             display: flex;
             gap: 10px;
+            align-items: center;
+        }
+
+        /* Estilo dos Inputs na Barra */
+        .tools-group select, .tools-group input {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: auto; /* Tamanho automático */
+        }
+
+        .btn-import {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+        .btn-import:hover { background: var(--primary); }
+
+        /* LOG DE IMPORTAÇÃO */
+        #import-log { 
+            position: fixed; bottom: 20px; right: 20px; 
+            background: white; padding: 20px; 
+            border-left: 5px solid var(--success); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15); 
+            display: none; z-index: 2000; border-radius: 4px; width: 300px;
         }
     </style>
 </head>
 <body>
 
-<div class="nav-tools-container">
-    <div class="nav-tools" style="background:rgba(255,255,255,0.1); padding:6px 15px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); display:flex; gap:10px;">
-        <select id="view-selector" onchange="ajustarSeletores()" style="background:transparent; border:none; color:white; font-weight:600; cursor:pointer;">
-            <option value="dia" style="color:#333">🔍 Dia Específico</option>
-            <option value="semana" style="color:#333">📅 Por Semana</option>
-            <option value="mes" style="color:#333">📊 Mês Completo</option>
-        </select>
-        
-        <input type="date" id="select-dia" onchange="carregarDados()" style="background:transparent; border:none; color:white;">
-        <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()" style="background:transparent; border:none; color:white;">
-        <select id="select-semana" class="hidden" onchange="alternarVisao()" style="background:transparent; border:none; color:white;">
-            <option value="1" style="color:#333">Semana 1</option>
-            <option value="2" style="color:#333">Semana 2</option>
-            <option value="3" style="color:#333">Semana 3</option>
-            <option value="4" style="color:#333">Semana 4</option>
-            <option value="5" style="color:#333">Semana 5</option>
-        </select>
-    </div>
-
-    <button onclick="document.getElementById('excel-files').click()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:600; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        Importar Excel
-    </button>
-    <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
-</div>
-
 <div class="container">
+    
+    <div class="action-bar">
+        <div class="action-title">
+            📊 Controle de Produção
+        </div>
+        
+        <div class="tools-group">
+            <select id="view-selector" onchange="ajustarSeletores()">
+                <option value="dia">🔍 Dia Específico</option>
+                <option value="semana">📅 Por Semana</option>
+                <option value="mes">📊 Mês Completo</option>
+            </select>
+            
+            <input type="date" id="select-dia" onchange="carregarDados()">
+            <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()">
+            <select id="select-semana" class="hidden" onchange="alternarVisao()">
+                <option value="1">Semana 1</option>
+                <option value="2">Semana 2</option>
+                <option value="3">Semana 3</option>
+                <option value="4">Semana 4</option>
+                <option value="5">Semana 5</option>
+            </select>
+
+            <button class="btn-import" onclick="document.getElementById('excel-files').click()">
+                📂 Importar Excel
+            </button>
+            <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
+        </div>
+    </div>
     
     <div class="dynamic-panel" style="background:var(--card); padding:20px; border-radius:8px; margin-bottom:20px; border-top:4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
         <h2 id="panel-titulo" style="margin:0 0 15px 0; font-size:1.1rem; color:var(--nav);">Visão Geral</h2>
@@ -83,7 +142,9 @@
                     <th style="text-align:center">G.T.</th>
                     <th style="text-align:center">G.P.</th>
                     <th style="text-align:center">P.FC</th>
-                    <th style="text-align:center">Meta (Período)</th> <th style="text-align:center">Status</th>        </tr>
+                    <th style="text-align:center">Meta (Período)</th> 
+                    <th style="text-align:center">Status</th>        
+                </tr>
             </thead>
             <tbody id="tabela-corpo">
                 </tbody>
@@ -93,8 +154,8 @@
 
 <div id="import-log">
     <h4 style="margin:0; color:var(--nav); margin-bottom:10px;">Relatório de Importação</h4>
-    <div id="log-content" style="font-size:0.9rem; color:#475569;"></div>
-    <button onclick="this.parentElement.style.display='none'" style="margin-top:15px; width:100%; padding:8px; background:var(--nav); color:white; border:none; border-radius:4px; cursor:pointer;">Fechar</button>
+    <div id="log-content" style="font-size:0.9rem; color:#475569; margin-bottom:15px;"></div>
+    <button onclick="this.parentElement.style.display='none'" style="width:100%; padding:8px; background:var(--nav); color:white; border:none; border-radius:4px; cursor:pointer;">Fechar</button>
 </div>
 
 <script src="assets/js/config.js"></script>
@@ -109,9 +170,12 @@
     const ontem = new Date(); 
     ontem.setDate(ontem.getDate() - 1);
     
-    // Define datas iniciais (Ontem)
-    document.getElementById('select-dia').value = ontem.toISOString().split('T')[0];
-    document.getElementById('select-mes').value = ontem.toISOString().substring(0, 7);
+    document.addEventListener('DOMContentLoaded', () => {
+        // Define datas iniciais (Ontem)
+        document.getElementById('select-dia').value = ontem.toISOString().split('T')[0];
+        document.getElementById('select-mes').value = ontem.toISOString().substring(0, 7);
+        ajustarSeletores(); // Dispara o carregamento inicial
+    });
 
     // Ajusta visual dos filtros
     function ajustarSeletores() { 
@@ -139,6 +203,8 @@
         const v = document.getElementById('view-selector').value; 
         const mes = v === 'dia' ? document.getElementById('select-dia').value.substring(0, 7) : document.getElementById('select-mes').value;
         
+        if(!mes) return;
+
         // Pega producao do mes inteiro para poder filtrar localmente (mais rapido na troca de abas)
         const { data: p } = await _supabase.from('producao')
             .select('*, usuarios(*)')
@@ -165,7 +231,7 @@
         const v = document.getElementById('view-selector').value; 
         let filtrados = []; 
         let titulo = '';
-        let dataFimPeriodo = ''; // Usada para achar a meta vigente
+        let dataFimPeriodo = ''; 
 
         if (v === 'dia') { 
             const d = document.getElementById('select-dia').value; 
@@ -177,7 +243,7 @@
             const s = parseInt(document.getElementById('select-semana').value); 
             filtrados = dadosGlobais.filter(x => getWeek(x.data_referencia) === s); 
             titulo = 'Semana ' + s;
-            dataFimPeriodo = document.getElementById('select-mes').value + '-28'; // Aproximação para meta
+            dataFimPeriodo = document.getElementById('select-mes').value + '-28'; 
         } 
         else { 
             filtrados = dadosGlobais; 
@@ -220,10 +286,9 @@
             
             // 1. Busca Meta do Usuário (vigente na data do filtro)
             const metaUser = metasGlobais.find(m => m.usuario_id === item.id && m.data_inicio <= dataFimPeriodo);
-            const metaDiaria = metaUser ? metaUser.valor_meta : 650; // 650 padrão se não achar
+            const metaDiaria = metaUser ? metaUser.valor_meta : 650; 
             
-            // 2. Calcula Meta do Período (Meta Diária * Dias Trabalhados naquele período)
-            // Se for visão Dia, diasCount será 1. Se for Mês, será 20, etc.
+            // 2. Calcula Meta do Período
             const metaPeriodo = metaDiaria * diasCount;
             
             // 3. Status
@@ -258,12 +323,10 @@
         let log = { success: 0, dups: 0 };
         
         for(let f of files){
-            // Validação simples do nome do arquivo (ex: 30102025.xlsx)
             const name = f.name.replace('.xlsx', ''); 
             if(!/^\d{8}$/.test(name)) continue;
             
             const dateRef = `${name.substring(4, 8)}-${name.substring(2, 4)}-${name.substring(0, 2)}`;
-            
             const buffer = await f.arrayBuffer(); 
             const workbook = XLSX.read(buffer, { type: 'array' }); 
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
@@ -271,7 +334,6 @@
             for(let row of json){
                 if(!row.id_assistente) continue;
                 
-                // Verifica duplicidade antes de inserir
                 const { data: exists } = await _supabase.from('producao')
                     .select('id')
                     .eq('usuario_id', row.id_assistente)
@@ -298,14 +360,11 @@
         document.getElementById('log-content').innerHTML = `
             <strong>Importação Concluída!</strong><br>
             ✅ Sucesso: ${log.success} registros.<br>
-            ⚠️ Duplicados (ignorados): ${log.dups} registros.
+            ⚠️ Duplicados: ${log.dups} registros.
         `; 
         document.getElementById('import-log').style.display = 'block'; 
         carregarDados();
     }
-    
-    // Inicia
-    ajustarSeletores();
 </script>
 </body>
 </html>
