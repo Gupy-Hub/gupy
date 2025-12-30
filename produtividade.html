@@ -1,370 +1,81 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtividade</title>
-    
-    <link rel="icon" href="assets/img/favicon.png" type="image/png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <title>Dashboard - Produtividade</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    
-    <style>
-        /* BARRA DE AÇÕES (FILTROS) - NOVO DESIGN */
-        .action-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            flex-wrap: wrap; /* Permite quebrar linha em celular */
-            gap: 15px;
-        }
-
-        .action-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--nav);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tools-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        /* Estilo dos Inputs na Barra */
-        .tools-group select, .tools-group input {
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            width: auto; /* Tamanho automático */
-        }
-
-        .btn-import {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 9px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: 0.2s;
-        }
-        .btn-import:hover { background: var(--primary); }
-
-        /* LOG DE IMPORTAÇÃO */
-        #import-log { 
-            position: fixed; bottom: 20px; right: 20px; 
-            background: white; padding: 20px; 
-            border-left: 5px solid var(--success); 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15); 
-            display: none; z-index: 2000; border-radius: 4px; width: 300px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/logo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-<div class="container">
-    
-    <div class="action-bar">
-        <div class="action-title">
-            📊 Controle de Produção
+    <div class="container">
+        <div class="action-bar">
+            <div class="tools-group">
+                <select id="periodoSelect" onchange="atualizarDashboard()">
+                    <option value="hoje">Hoje</option>
+                    <option value="semana">Esta Semana</option>
+                    <option value="mes" selected>Este Mês</option>
+                </select>
+                <button class="btn-import" onclick="abrirModalRegistro()">+ Novo Registro</button>
+            </div>
         </div>
-        
-        <div class="tools-group">
-            <select id="view-selector" onchange="ajustarSeletores()">
-                <option value="dia">🔍 Dia Específico</option>
-                <option value="semana">📅 Por Semana</option>
-                <option value="mes">📊 Mês Completo</option>
-            </select>
-            
-            <input type="date" id="select-dia" onchange="carregarDados()">
-            <input type="month" id="select-mes" class="hidden" onchange="sincronizarMes()">
-            <select id="select-semana" class="hidden" onchange="alternarVisao()">
-                <option value="1">Semana 1</option>
-                <option value="2">Semana 2</option>
-                <option value="3">Semana 3</option>
-                <option value="4">Semana 4</option>
-                <option value="5">Semana 5</option>
-            </select>
 
-            <button class="btn-import" onclick="document.getElementById('excel-files').click()">
-                📂 Importar Excel
-            </button>
-            <input type="file" id="excel-files" accept=".xlsx" multiple class="hidden" onchange="importarArquivos()">
-        </div>
-    </div>
-    
-    <div class="dynamic-panel" style="background:var(--card); padding:20px; border-radius:8px; margin-bottom:20px; border-top:4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-        <h2 id="panel-titulo" style="margin:0 0 15px 0; font-size:1.1rem; color:var(--nav);">Visão Geral</h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Produção Total</div>
-                <div class="stat-value" id="p-total">0</div>
+                <span class="stat-label">Total de Horas</span>
+                <div class="stat-value" id="totalHoras">0h</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Média do Time</div>
-                <div class="stat-value" id="p-media">0</div>
+                <span class="stat-label">Média Diária</span>
+                <div class="stat-value" id="mediaDiaria">0h</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Assistentes Ativos</div>
-                <div class="stat-value" id="p-headcount">0</div>
+                <span class="stat-label">Colaborador Top</span>
+                <div class="stat-value" id="topColaborador">-</div>
             </div>
+            <div class="stat-card">
+                <span class="stat-label">Eficiência Geral</span>
+                <div class="stat-value" id="eficienciaGeral">0%</div>
+            </div>
+        </div>
+
+        <div class="chart-container" style="background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--border);">
+            <canvas id="produtividadeChart"></canvas>
         </div>
     </div>
 
-    <div class="table-wrap">
-        <table>
-            <thead id="main-thead">
-                <tr>
-                    <th>Assistente</th>
-                    <th style="text-align:center; color:var(--primary);">Produção</th>
-                    <th style="text-align:center">FIFO</th>
-                    <th style="text-align:center">G.T.</th>
-                    <th style="text-align:center">G.P.</th>
-                    <th style="text-align:center">P.FC</th>
-                    <th style="text-align:center">Meta (Período)</th> 
-                    <th style="text-align:center">Status</th>        
-                </tr>
-            </thead>
-            <tbody id="tabela-corpo">
-                </tbody>
-        </table>
+    <div class="modal-overlay" id="modalRegistro">
+        <div class="modal">
+            <h2>Novo Registro</h2>
+            <form onsubmit="salvarRegistro(event)">
+                <div class="form-group">
+                    <label>Colaborador</label>
+                    <select id="colaboradorSelect" required>
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="dataRegistro" required>
+                </div>
+                <div class="form-group">
+                    <label>Horas Trabalhadas</label>
+                    <input type="number" id="horasRegistro" step="0.1" min="0" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="fecharModalRegistro()" style="background: transparent; color: var(--text-muted);">Cancelar</button>
+                    <button type="submit" class="btn-import" style="margin: 0;">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<div id="import-log">
-    <h4 style="margin:0; color:var(--nav); margin-bottom:10px;">Relatório de Importação</h4>
-    <div id="log-content" style="font-size:0.9rem; color:#475569; margin-bottom:15px;"></div>
-    <button onclick="this.parentElement.style.display='none'" style="width:100%; padding:8px; background:var(--nav); color:white; border:none; border-radius:4px; cursor:pointer;">Fechar</button>
-</div>
-
-<script src="assets/js/config.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/layout.js"></script>
-
-<script>
-    let dadosGlobais = [];
-    let metasGlobais = [];
-    
-    // Inicialização
-    const ontem = new Date(); 
-    ontem.setDate(ontem.getDate() - 1);
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        // Define datas iniciais (Ontem)
-        document.getElementById('select-dia').value = ontem.toISOString().split('T')[0];
-        document.getElementById('select-mes').value = ontem.toISOString().substring(0, 7);
-        ajustarSeletores(); // Dispara o carregamento inicial
-    });
-
-    // Ajusta visual dos filtros
-    function ajustarSeletores() { 
-        const v = document.getElementById('view-selector').value; 
-        const d = document.getElementById('select-dia');
-        const m = document.getElementById('select-mes');
-        const s = document.getElementById('select-semana'); 
-        
-        d.classList.add('hidden'); m.classList.add('hidden'); s.classList.add('hidden'); 
-        
-        if(v === 'dia') d.classList.remove('hidden'); 
-        else if(v === 'semana') { s.classList.remove('hidden'); m.classList.remove('hidden'); } 
-        else m.classList.remove('hidden'); 
-        
-        carregarDados(); 
-    }
-
-    function sincronizarMes() { 
-        document.getElementById('select-dia').value = document.getElementById('select-mes').value + '-01'; 
-        carregarDados(); 
-    }
-
-    // Busca dados no Supabase
-    async function carregarDados() {
-        const v = document.getElementById('view-selector').value; 
-        const mes = v === 'dia' ? document.getElementById('select-dia').value.substring(0, 7) : document.getElementById('select-mes').value;
-        
-        if(!mes) return;
-
-        // Pega producao do mes inteiro para poder filtrar localmente (mais rapido na troca de abas)
-        const { data: p } = await _supabase.from('producao')
-            .select('*, usuarios(*)')
-            .gte('data_referencia', mes + '-01')
-            .lte('data_referencia', mes + '-31')
-            .order('data_referencia', {ascending: false});
-            
-        // Pega histórico de metas
-        const { data: m } = await _supabase.from('metas').select('*').order('data_inicio', {ascending: false});
-        
-        dadosGlobais = p || []; 
-        metasGlobais = m || []; 
-        alternarVisao();
-    }
-
-    function getWeek(d) { 
-        const date = new Date(d + 'T12:00:00'); 
-        const first = new Date(date.getFullYear(), date.getMonth(), 1); 
-        return Math.ceil((date.getDate() + first.getDay()) / 7); 
-    }
-
-    // Motor de Cálculo e Renderização
-    function alternarVisao() {
-        const v = document.getElementById('view-selector').value; 
-        let filtrados = []; 
-        let titulo = '';
-        let dataFimPeriodo = ''; 
-
-        if (v === 'dia') { 
-            const d = document.getElementById('select-dia').value; 
-            filtrados = dadosGlobais.filter(x => x.data_referencia === d); 
-            titulo = 'Dia: ' + d.split('-').reverse().join('/'); 
-            dataFimPeriodo = d;
-        } 
-        else if (v === 'semana') { 
-            const s = parseInt(document.getElementById('select-semana').value); 
-            filtrados = dadosGlobais.filter(x => getWeek(x.data_referencia) === s); 
-            titulo = 'Semana ' + s;
-            dataFimPeriodo = document.getElementById('select-mes').value + '-28'; 
-        } 
-        else { 
-            filtrados = dadosGlobais; 
-            titulo = 'Mês Completo'; 
-            dataFimPeriodo = document.getElementById('select-mes').value + '-28';
-        }
-        
-        // Agregação por Usuário
-        let stats = {}; 
-        filtrados.forEach(x => { 
-            if(!x.usuarios || x.usuarios.funcao !== 'Assistente') return; 
-            const u = x.usuario_id; 
-            if(!stats[u]) stats[u] = { 
-                id: u,
-                nome: x.usuarios.nome, 
-                q: 0, fifo: 0, gt: 0, gp: 0, fc: 0,
-                diasTrabalhados: new Set()
-            }; 
-            stats[u].q += x.quantidade; 
-            stats[u].fifo += x.fifo; 
-            stats[u].gt += x.gradual_total; 
-            stats[u].gp += x.gradual_parcial; 
-            stats[u].fc += x.perfil_fc; 
-            stats[u].diasTrabalhados.add(x.data_referencia);
-        });
-
-        const lista = Object.values(stats).sort((a, b) => b.q - a.q);
-        
-        // Atualiza Cards
-        const totalGeral = lista.reduce((acc, curr) => acc + curr.q, 0); 
-        document.getElementById('p-total').innerText = totalGeral.toLocaleString(); 
-        document.getElementById('p-headcount').innerText = lista.length; 
-        document.getElementById('p-media').innerText = lista.length ? Math.round(totalGeral / lista.length).toLocaleString() : 0; 
-        document.getElementById('panel-titulo').innerText = titulo;
-        
-        // Renderiza Tabela
-        let html = ''; 
-        lista.forEach(item => {
-            const diasCount = item.diasTrabalhados.size || 1;
-            
-            // 1. Busca Meta do Usuário (vigente na data do filtro)
-            const metaUser = metasGlobais.find(m => m.usuario_id === item.id && m.data_inicio <= dataFimPeriodo);
-            const metaDiaria = metaUser ? metaUser.valor_meta : 650; 
-            
-            // 2. Calcula Meta do Período
-            const metaPeriodo = metaDiaria * diasCount;
-            
-            // 3. Status
-            const atingiu = item.q >= metaPeriodo;
-            const pct = metaPeriodo > 0 ? Math.round((item.q / metaPeriodo) * 100) : 0;
-            const badgeClass = atingiu ? 'var(--success)' : 'var(--danger)';
-            const badgeText = atingiu ? 'Sim' : 'Não';
-            
-            html += `
-            <tr>
-                <td style="font-weight:600; color:var(--nav);">${item.nome}</td>
-                <td style="font-weight:700; color:var(--primary); text-align:center;">${item.q.toLocaleString()}</td>
-                <td style="text-align:center;">${item.fifo}</td>
-                <td style="text-align:center;">${item.gt}</td>
-                <td style="text-align:center;">${item.gp}</td>
-                <td style="text-align:center;">${item.fc}</td>
-                <td style="text-align:center; font-weight:600; color:var(--text-muted);">${metaPeriodo.toLocaleString()}</td>
-                <td style="text-align:center;">
-                    <span class="badge" style="background:${badgeClass}; font-size:0.75rem; padding:4px 8px;">
-                        ${badgeText} (${pct}%)
-                    </span>
-                </td>
-            </tr>`; 
-        });
-        
-        document.getElementById('tabela-corpo').innerHTML = html || '<tr><td colspan="8" style="text-align:center; padding:20px;">Nenhum dado encontrado para este período.</td></tr>';
-    }
-
-    // Função de Importação (Excel)
-    async function importarArquivos() { 
-        const files = document.getElementById('excel-files').files; 
-        let log = { success: 0, dups: 0 };
-        
-        for(let f of files){
-            const name = f.name.replace('.xlsx', ''); 
-            if(!/^\d{8}$/.test(name)) continue;
-            
-            const dateRef = `${name.substring(4, 8)}-${name.substring(2, 4)}-${name.substring(0, 2)}`;
-            const buffer = await f.arrayBuffer(); 
-            const workbook = XLSX.read(buffer, { type: 'array' }); 
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            for(let row of json){
-                if(!row.id_assistente) continue;
-                
-                const { data: exists } = await _supabase.from('producao')
-                    .select('id')
-                    .eq('usuario_id', row.id_assistente)
-                    .eq('data_referencia', dateRef)
-                    .maybeSingle();
-                
-                if(exists) {
-                    log.dups++; 
-                } else { 
-                    await _supabase.from('producao').insert({
-                        usuario_id: row.id_assistente,
-                        fifo: row.documentos_validados_fifo || 0,
-                        gradual_total: row.documentos_validados_gradual_total || 0,
-                        gradual_parcial: row.documentos_validados_gradual_parcial || 0,
-                        perfil_fc: row.documentos_validados_perfil_fc || 0,
-                        quantidade: row.documentos_validados || 0,
-                        data_referencia: dateRef
-                    }); 
-                    log.success++; 
-                }
-            }
-        }
-        
-        document.getElementById('log-content').innerHTML = `
-            <strong>Importação Concluída!</strong><br>
-            ✅ Sucesso: ${log.success} registros.<br>
-            ⚠️ Duplicados: ${log.dups} registros.
-        `; 
-        document.getElementById('import-log').style.display = 'block'; 
-        carregarDados();
-    }
-</script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/dados.js"></script>
+    <script src="assets/js/logo.js"></script>
+    <script src="assets/js/layout.js"></script>
+    <script src="assets/js/produtividade.js"></script>
 </body>
 </html>
