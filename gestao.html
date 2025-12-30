@@ -1,47 +1,408 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Colaboradores</title>
+    <title>Gestão Administrativa</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/logo.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Específico da Gestão (Mantido) */
+        .option-all { font-weight: 800; color: var(--primary); background-color: #f0f9ff; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="management-grid">
-            <div class="card" style="background: white; padding: 25px; border-radius: 10px; border: 1px solid var(--border);">
-                <h2 style="margin-top: 0; color: var(--nav);">Novo Colaborador</h2>
-                <form onsubmit="adicionarColaborador(event)" id="formColaborador">
-                    <div class="form-group">
-                        <label>Nome Completo</label>
-                        <input type="text" id="nomeColab" required placeholder="Ex: João Silva">
-                    </div>
-                    <div class="form-group">
-                        <label>Cargo/Função</label>
-                        <input type="text" id="cargoColab" required placeholder="Ex: Desenvolvedor">
-                    </div>
-                    <div class="form-group">
-                        <label>Meta Diária (Horas)</label>
-                        <input type="number" id="metaColab" step="0.1" min="1" required placeholder="Ex: 8.0">
-                    </div>
-                    <button type="submit" class="btn-save">Cadastrar Colaborador</button>
-                </form>
-            </div>
 
-            <div class="card" style="background: white; padding: 25px; border-radius: 10px; border: 1px solid var(--border);">
-                <h2 style="margin-top: 0; color: var(--nav);">Equipe Atual</h2>
-                <div id="listaColaboradores" class="colaboradores-list" style="max-height: 400px; overflow-y: auto;">
-                    </div>
-            </div>
+<div class="container">
+    <div class="top-controls">
+        <div>
+            <h1 style="font-size:1.5rem; margin:0; color:var(--nav);">Painel de Gestão</h1>
+            <p style="margin:5px 0 0 0; color:var(--text-muted); font-size:0.9rem;">Gerencie Colaboradores e Metas</p>
         </div>
     </div>
 
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/dados.js"></script>
-    <script src="assets/js/logo.js"></script>
-    <script src="assets/js/layout.js"></script>
-    <script src="assets/js/gestao.js"></script>
+    <div class="management-grid">
+        
+        <div class="card-form">
+            <div class="card-header">🎯 Configuração de Metas</div>
+            
+            <div style="padding: 20px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Aplicar Para</label>
+                        <select id="meta-user" style="font-weight:600;">
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Início Vigência</label>
+                        <input type="date" id="meta-date">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Valor da Meta (Diária)</label>
+                        <input type="number" id="meta-value" placeholder="Ex: 650">
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="salvarMeta()">Gravar Meta</button>
+
+                <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <div style="font-size:0.9rem; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; color:var(--nav); font-weight:700;">
+                        <span>Metas Atuais (Vigentes)</span>
+                        <small style="font-weight:400; color:var(--text-muted)">Hoje: <span id="today-display"></span></small>
+                    </div>
+                    <div class="list-container" id="meta-list" style="max-height: 300px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-form">
+            <div class="card-header">
+                <span>👥 Equipe (<span id="total-users">0</span>)</span>
+                <button class="btn-add" onclick="abrirModalUsuario()">+ Novo</button>
+            </div>
+            
+            <div style="padding: 20px;">
+                <div style="margin-bottom:15px;">
+                    <input type="text" id="search-user" placeholder="Buscar por nome ou ID..." onkeyup="filtrarUsuarios()" style="width:100%; box-sizing:border-box;">
+                </div>
+
+                <div class="list-container" id="user-list">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-user">
+    <div class="modal">
+        <div class="card-header" style="background:none; border:none; padding:0 0 20px 0;">
+            <span id="modal-title" style="font-size:1.2rem;">Novo Colaborador</span>
+            <span style="cursor:pointer; font-size:1.5rem;" onclick="fecharModal()">&times;</span>
+        </div>
+        
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>ID (Login)</label>
+            <input type="number" id="user-id" placeholder="Digite o ID do funcionário" style="font-weight:700; color:var(--nav);">
+        </div>
+
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>Nome Completo</label>
+            <input type="text" id="user-name" placeholder="Ex: Maria Silva">
+        </div>
+
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>Senha de Acesso</label>
+            <input type="text" id="user-pass" placeholder="Defina uma senha">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Função</label>
+                <select id="user-role">
+                    <option value="Assistente">Assistente</option>
+                    <option value="Gestora">Gestora</option>
+                    <option value="Auditora">Auditora</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Contrato</label>
+                <select id="user-contract">
+                    <option value="PJ">PJ</option>
+                    <option value="CLT">CLT</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom:20px;">
+            <label>E-mail (Opcional)</label>
+            <input type="email" id="user-email" placeholder="contato@empresa.com">
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn-save" onclick="salvarUsuario()">Salvar Dados</button>
+            <button class="btn-save" id="btn-delete" onclick="excluirUsuario()" style="background:var(--danger); width:30%; display:none;">Excluir</button>
+        </div>
+    </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/logo.js"></script>
+<script src="assets/js/layout.js"></script>
+
+<script>
+    // 1. SEGURANÇA
+    if (SESSAO_ATUAL.funcao !== 'Gestora') {
+        alert('Acesso restrito à gestão.');
+        window.location.href = 'produtividade.html';
+    }
+
+    let allUsers = [];
+
+    // 2. INICIALIZAÇÃO
+    async function init() {
+        const today = new Date();
+        document.getElementById('meta-date').value = today.toISOString().substring(0, 10);
+        if(document.getElementById('today-display')) {
+            document.getElementById('today-display').innerText = today.toLocaleDateString('pt-BR');
+        }
+
+        await loadUsers();
+        await loadMetasAtuais();
+    }
+
+    // --- CRUD USUÁRIOS ---
+
+    async function loadUsers() {
+        const { data: users, error } = await _supabase.from('usuarios').select('*').order('nome');
+        if(error) return console.error(error);
+        allUsers = users;
+        renderUsers(users);
+        populateSelect(users);
+    }
+
+    function renderUsers(lista) {
+        const container = document.getElementById('user-list');
+        document.getElementById('total-users').innerText = lista.length;
+        let html = '';
+        
+        lista.forEach(u => {
+            const userJson = JSON.stringify(u).replace(/"/g, '&quot;');
+            
+            html += `
+                <div class="list-item">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="id-badge">#${u.id}</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-weight:700; color:var(--nav);">${u.nome}</span>
+                            <div style="margin-top:2px;">
+                                <span class="role-tag">${u.funcao}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-action" onclick="abrirModalUsuario(${userJson})">✏️ Editar</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Abertura do Modal
+    function abrirModalUsuario(user = null) {
+        const modal = document.getElementById('modal-user');
+        const btnDel = document.getElementById('btn-delete');
+        const title = document.getElementById('modal-title');
+        const idInput = document.getElementById('user-id');
+        
+        if (user) {
+            title.innerText = "Editar Colaborador";
+            idInput.value = user.id;
+            idInput.disabled = true; 
+            idInput.style.backgroundColor = "#e2e8f0";
+            
+            document.getElementById('user-name').value = user.nome;
+            document.getElementById('user-pass').value = user.senha;
+            document.getElementById('user-email').value = user.email || '';
+            document.getElementById('user-role').value = user.funcao;
+            document.getElementById('user-contract').value = user.contrato || 'PJ';
+            btnDel.style.display = 'block';
+        } else {
+            title.innerText = "Novo Colaborador";
+            idInput.value = "";
+            idInput.disabled = false;
+            idInput.style.backgroundColor = "#fff";
+            
+            document.getElementById('user-name').value = "";
+            document.getElementById('user-pass').value = "";
+            document.getElementById('user-email').value = "";
+            document.getElementById('user-role').value = "Assistente";
+            document.getElementById('user-contract').value = "PJ";
+            btnDel.style.display = 'none';
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    function fecharModal() {
+        document.getElementById('modal-user').style.display = 'none';
+    }
+
+    async function salvarUsuario() {
+        const id = document.getElementById('user-id').value;
+        const nome = document.getElementById('user-name').value;
+        const senha = document.getElementById('user-pass').value;
+        const email = document.getElementById('user-email').value;
+        const funcao = document.getElementById('user-role').value;
+        const contrato = document.getElementById('user-contract').value;
+
+        if(!id || !nome || !senha) return alert("Preencha ID, Nome e Senha.");
+
+        const payload = { id: parseInt(id), nome, senha, email, funcao, contrato };
+        let error = null;
+
+        const btn = document.querySelector('#modal-user .btn-save');
+        btn.innerText = "Salvando...";
+        btn.disabled = true;
+
+        if(document.getElementById('user-id').disabled) {
+            const res = await _supabase.from('usuarios').update(payload).eq('id', id);
+            error = res.error;
+        } else {
+            const res = await _supabase.from('usuarios').insert(payload);
+            error = res.error;
+        }
+
+        btn.innerText = "Salvar Dados";
+        btn.disabled = false;
+
+        if(error) alert("Erro ao salvar: " + error.message);
+        else {
+            fecharModal();
+            loadUsers();
+            loadMetasAtuais();
+        }
+    }
+
+    async function excluirUsuario() {
+        const id = document.getElementById('user-id').value;
+        if(confirm(`Tem certeza que deseja excluir o usuário #${id}?`)) {
+            const { error } = await _supabase.from('usuarios').delete().eq('id', id);
+            if(error) alert("Erro: " + error.message);
+            else {
+                fecharModal();
+                loadUsers();
+                loadMetasAtuais();
+            }
+        }
+    }
+
+    // --- FILTROS E METAS COM OPÇÃO "TODOS" ---
+
+    function populateSelect(lista) {
+        const sel = document.getElementById('meta-user');
+        // Opção especial para atualizar todos
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        sel.innerHTML += '<option value="all" class="option-all">⭐ TODOS OS ASSISTENTES (Massa)</option>';
+        
+        const assistentes = lista.filter(u => u.funcao === 'Assistente');
+        assistentes.forEach(u => sel.innerHTML += `<option value="${u.id}">${u.nome}</option>`);
+    }
+
+    function filtrarUsuarios() {
+        const term = document.getElementById('search-user').value.toLowerCase();
+        const filtered = allUsers.filter(u => 
+            u.nome.toLowerCase().includes(term) || 
+            String(u.id).includes(term)
+        );
+        renderUsers(filtered);
+    }
+
+    async function loadMetasAtuais() {
+        const container = document.getElementById('meta-list');
+        container.innerHTML = '<div style="padding:15px; text-align:center; color:#999;">Carregando...</div>';
+
+        const { data: assistentes } = await _supabase.from('usuarios').select('id, nome').eq('funcao', 'Assistente').order('nome');
+        const { data: todasMetas } = await _supabase.from('metas').select('*').order('data_inicio', { ascending: false });
+
+        if (!assistentes || assistentes.length === 0) {
+            container.innerHTML = '<div style="padding:15px;">Nenhum assistente cadastrado.</div>';
+            return;
+        }
+
+        let html = '';
+        const hoje = new Date().toISOString().split('T')[0];
+
+        assistentes.forEach(assistente => {
+            const metaAtual = todasMetas.find(m => m.usuario_id === assistente.id && m.data_inicio <= hoje);
+            const valor = metaAtual ? metaAtual.valor_meta : 0;
+            const dataVigencia = metaAtual ? metaAtual.data_inicio.split('-').reverse().join('/') : '-';
+            const styleValor = metaAtual ? 'color:var(--nav);' : 'color:#cbd5e1;'; 
+
+            html += `
+                <div class="list-item">
+                    <div>
+                        <span style="display:block; font-weight:700; color:var(--primary);">${assistente.nome}</span>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">Vigência: ${dataVigencia}</span>
+                    </div>
+                    <div style="font-size:1.1rem; font-weight:800; ${styleValor}">
+                        ${valor}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function salvarMeta() {
+        const uid = document.getElementById('meta-user').value;
+        const data = document.getElementById('meta-date').value;
+        const valor = document.getElementById('meta-value').value;
+
+        if(!uid || !data || !valor) return alert("Preencha todos os campos da meta!");
+
+        const btn = document.querySelector('.card-form .btn-save'); 
+        const txt = btn.innerText;
+        btn.innerText = "Salvando...";
+        btn.disabled = true;
+
+        let error = null;
+
+        // LÓGICA DE SALVAMENTO EM MASSA
+        if (uid === 'all') {
+            if(!confirm(`ATENÇÃO:\nVocê está prestes a definir a meta de ${valor} para TODOS os assistentes a partir de ${data.split('-').reverse().join('/')}.\n\nDeseja continuar?`)) {
+                btn.innerText = txt; 
+                btn.disabled = false;
+                return;
+            }
+
+            // Filtra quem é assistente
+            const assistentes = allUsers.filter(u => u.funcao === 'Assistente');
+            const inserts = assistentes.map(u => ({
+                usuario_id: u.id,
+                data_inicio: data,
+                valor_meta: parseInt(valor)
+            }));
+
+            // Envia tudo de uma vez
+            const res = await _supabase.from('metas').insert(inserts);
+            error = res.error;
+
+        } else {
+            // Salvamento Individual
+            const res = await _supabase.from('metas').insert({ usuario_id: uid, data_inicio: data, valor_meta: parseInt(valor) });
+            error = res.error;
+        }
+
+        if(error) {
+            alert('Erro: ' + error.message);
+            btn.innerText = txt; 
+            btn.disabled = false;
+        } else {
+            document.getElementById('meta-value').value = ''; 
+            await loadMetasAtuais(); 
+            btn.style.background = 'var(--primary)';
+            btn.innerText = "Salvo!";
+            setTimeout(() => { 
+                btn.innerText = txt; 
+                btn.style.background = '';
+                btn.disabled = false; 
+            }, 2000);
+        }
+    }
+
+    init();
+</script>
 </body>
 </html>
