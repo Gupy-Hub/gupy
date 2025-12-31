@@ -1,6 +1,6 @@
 /**
  * assets/js/layout.js
- * ATUALIZADO: Usa a função externa getLogoHTML() para renderizar a marca.
+ * ATUALIZADO: Inclui o link para o sistema de Frases
  */
 
 function renderNavbar() {
@@ -29,12 +29,17 @@ function renderNavbar() {
     <nav class="navbar">
         <div class="nav-container">
             
-            ${getLogoHTML()}
+            ${typeof getLogoHTML === 'function' ? getLogoHTML() : '<div class="brand">Gupy</div>'}
             
             <div class="nav-links">
                 <a href="gestao.html" class="nav-item">Gestão</a>
                 <a href="produtividade.html" class="nav-item">Produtividade</a>
                 <a href="performance.html" class="nav-item">Performance</a>
+                
+                <a href="frases.html" class="nav-item" style="color: #60a5fa; font-weight: 700; border-bottom: 2px solid transparent;">
+                    💬 Frases & Chat
+                </a>
+                
                 <a href="consolidado.html" class="nav-item">Consolidado</a>
                 <a href="minha_area.html" class="nav-item">Minha Área</a>
             </div>
@@ -53,10 +58,19 @@ function renderNavbar() {
     const page = path.split('/').pop();
     document.querySelectorAll('.nav-item').forEach(link => {
         const href = link.getAttribute('href');
-        if (href === page || (page === '' && href === 'produtividade.html')) {
+        if (href === page) {
             link.classList.add('active');
         }
     });
+}
+
+// Pequena função auxiliar para logout (caso não exista no escopo global)
+if (typeof logout !== 'function') {
+    window.logout = function() {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('gupy_session'); // Limpa também a sessão do novo sistema
+        window.location.href = 'index.html';
+    }
 }
 
 document.addEventListener("DOMContentLoaded", renderNavbar);
