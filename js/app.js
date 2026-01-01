@@ -1,105 +1,108 @@
-// Local: js/app.js
-// ATUALIZADO: Integração com login do Hub de Produtividade
+// js/app.js - Controlador Principal Unificado
 
 let usuarioLogado = null;
-let abaAtiva = 'biblioteca';
-let chatAberto = false;
-let debounceTimer;
-let cacheNomesChat = {}; 
-let mediaRecorder = null;
-let audioChunks = [];
-let pollingInterval = null; 
-let maiorIdMensagem = 0;
+let abaAtiva = 'dashboard';
 
-window.onload = function() { 
-    try {
-        // 1. Tenta recuperar sessão do Sistema de Frases
-        let s = localStorage.getItem('gupy_session'); 
-        
-        // 2. INTEGRAÇÃO: Se não existir, tenta pegar do Hub de Produtividade
-        if (!s) {
-            const sessaoHub = localStorage.getItem('usuario');
-            if (sessaoHub) {
-                const uHub = JSON.parse(sessaoHub);
-                // Converte o usuário do Hub para o formato do Frases
-                const uConvertido = {
-                    id: uHub.id,
-                    username: uHub.id.toString(), // Usa o ID numérico como username
-                    nome: uHub.nome,
-                    perfil: uHub.funcao === 'Gestora' ? 'admin' : 'user',
-                    ativo: true,
-                    primeiro_acesso: false
-                };
-                s = JSON.stringify(uConvertido);
-                localStorage.setItem('gupy_session', s); // Salva para o futuro
-            }
-        }
-
-        if(s) { 
-            usuarioLogado = JSON.parse(s); 
-            // Se veio do Hub, não deve pedir troca de senha de primeiro acesso
-            document.getElementById('login-flow').classList.add('hidden');
-            entrarNoSistema(); 
-        } 
-        else {
-            // Se não tem login nenhum, volta para o login principal
-            window.location.href = 'index.html';
-        }
-    } catch (error) {
-        console.error("Erro inicialização:", error);
-        window.location.href = 'index.html';
-    }
+window.onload = function() {
+    verificarLogin();
 };
 
-// ... Mantém as funções do Chat e Calculadora inalteradas abaixo ...
-// Para garantir que tens o código completo, copiei a lógica essencial abaixo:
+function verificarLogin() {
+    let s = localStorage.getItem('gupy_session');
+    
+    // Tenta migrar sessão antiga se existir
+    if (!s && localStorage.getItem('usuario')) {
+        const old = JSON.parse(localStorage.getItem('usuario'));
+        const novo = {
+            id: old.id,
+            username: old.id.toString(),
+            nome: old.nome,
+            perfil: old.funcao === 'Gestora' ? 'admin' : 'user',
+            ativo: true
+        };
+        localStorage.setItem('gupy_session', JSON.stringify(novo));
+        s = JSON.stringify(novo);
+    }
 
-function fazerLogin() {
-    // Função mantida caso tente acessar direto, mas a prioridade é o redirect acima
-    const u = document.getElementById('login-user').value; 
-    const p = document.getElementById('login-pass').value;
-    // ... (mesma lógica original) ...
-}
-
-function entrarNoSistema() {
-    try {
+    if (s) {
+        usuarioLogado = JSON.parse(s);
         document.getElementById('login-flow').classList.add('hidden');
-        document.getElementById('app-flow').classList.remove('hidden');
-        
-        const userNameDisplay = document.getElementById('user-name-display');
-        const userAvatar = document.getElementById('avatar-initial');
-        const roleLabel = document.getElementById('user-role-display'); 
-        const adminMenu = document.getElementById('admin-menu-items');
-
-        if(userNameDisplay && usuarioLogado) userNameDisplay.innerText = usuarioLogado.nome || usuarioLogado.username;
-        if(userAvatar && usuarioLogado) userAvatar.innerText = (usuarioLogado.nome || usuarioLogado.username).charAt(0).toUpperCase();
-
-        if (usuarioLogado.perfil === 'admin') { 
-            if(roleLabel) { roleLabel.innerText = 'Administrador'; roleLabel.classList.add('text-yellow-400'); }
-            if(adminMenu) { adminMenu.classList.remove('hidden'); adminMenu.classList.add('flex'); }
-        } else { 
-            if(roleLabel) { roleLabel.innerText = 'Colaborador'; roleLabel.classList.add('text-blue-300'); }
-            if(adminMenu) { adminMenu.classList.add('hidden'); adminMenu.classList.remove('flex'); }
-        }
-
-        carregarNomesChat();
-        navegar('biblioteca'); 
-        iniciarHeartbeat(); 
-        iniciarChat(); 
-    } catch (error) {
-        console.error("Erro entrarNoSistema:", error);
+        inicializarSistema();
+    } else {
+        document.getElementById('login-flow').classList.remove('hidden');
     }
 }
 
-// ... Resto das funções auxiliares (logout, navegar, cep, chat, calculadora) permanecem iguais ao original ...
-// Apenas a função logout precisa ser ajustada para limpar tudo:
-
-function logout() { 
-    localStorage.removeItem('gupy_session'); 
-    localStorage.removeItem('usuario'); // Remove também do Hub
-    localStorage.removeItem('gupy_ultimo_login_diario'); 
-    window.location.href = 'index.html'; 
+async function fazerLogin() {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    
+    // Busca na tabela usuarios (que agora serve para ambos)
+    const { data, error } = await _supabase.from('usuarios').select('*').eq('id', u).eq('senha', p).maybeSingle();
+    
+    if (data) {
+        // Normaliza dados
+        const user = {
+            id: data.id,
+            username: data.id.toString(),
+            nome: data.nome,
+            perfil: data.funcao === 'Gestora' ? 'admin' : 'user',
+            ativo: true
+        };
+        localStorage.setItem('gupy_session', JSON.stringify(user));
+        location.reload();
+    } else {
+        alert('Dados inválidos');
+    }
 }
 
-// Funções de navegação, chat, etc, podem ser mantidas do arquivo original app.js que me enviaste.
-// Se precisares delas aqui, avisa que colo o arquivo inteiro, mas o importante foi o window.onload e logout atualizados acima.
+function inicializarSistema() {
+    // Preenche Sidebar
+    document.getElementById('nome-sidebar').innerText = usuarioLogado.nome;
+    document.getElementById('perfil-sidebar').innerText = usuarioLogado.perfil === 'admin' ? 'Gestão' : 'Colaborador';
+    document.getElementById('avatar-sidebar').innerText = usuarioLogado.nome.charAt(0);
+
+    // Esconde menus de admin se for user comum
+    if (usuarioLogado.perfil !== 'admin') {
+        document.getElementById('menu-equipe').classList.add('hidden');
+        document.getElementById('menu-logs').classList.add('hidden');
+    }
+
+    // Carrega aba inicial
+    navegar('dashboard');
+    
+    // Inicia Chat
+    if (typeof iniciarChat === 'function') iniciarChat();
+}
+
+function navegar(aba) {
+    abaAtiva = aba;
+    
+    // UI: Esconde todas as sections
+    document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`view-${aba}`).classList.remove('hidden');
+    
+    // UI: Atualiza Sidebar (classe ativa)
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('tab-active', 'bg-slate-800', 'text-white'));
+    const btnMenu = document.getElementById(`menu-${aba}`);
+    if(btnMenu) btnMenu.classList.add('tab-active');
+
+    // Título da Página
+    document.getElementById('page-title').innerText = aba.charAt(0).toUpperCase() + aba.slice(1);
+
+    // Lógica Específica de cada aba
+    if (aba === 'dashboard') carregarDashboard();
+    if (aba === 'biblioteca') carregarFrases();
+    if (aba === 'logs') carregarLogs();
+    if (aba === 'equipe') { carregarEquipe(); Gestao.init(); }
+    
+    // Módulos Portados (Novo Arquivo)
+    if (aba === 'produtividade') Produtividade.init();
+    if (aba === 'performance') Performance.init();
+    if (aba === 'consolidado') Consolidado.init();
+}
+
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
