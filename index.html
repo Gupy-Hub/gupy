@@ -1,99 +1,58 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Controle de Produtividade</title>
-    
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/logo.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="login-page">
-    <div class="login-container">
-        <div class="login-logo-container">
-            <span class="logo-sub">Controle de</span>
-            <span class="logo-main">Produtividade</span>
-        </div>
+<script>
+    // 1. Verifica se já está logado
+    // Se tiver sessão antiga ('usuario'), redireciona para o PAINEL novo
+    if(localStorage.getItem('usuario') || localStorage.getItem('gupy_session')) {
+        window.location.href = 'painel.html';
+    }
 
-        <h2 style="margin-bottom: 25px; color: var(--nav);">Bem-vindo</h2>
+    function handleEnter(e) { 
+        if(e.key === 'Enter') fazerLogin(); 
+    }
+
+    async function fazerLogin() {
+        const idVal = document.getElementById('login-id').value.trim();
+        const passVal = document.getElementById('senha').value.trim();
+        const btn = document.getElementById('btn-entrar');
+        const msg = document.getElementById('error-msg');
+
+        msg.style.display = 'none';
         
-        <div class="login-card">
-            <div class="input-group" style="text-align: left; margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">ID do Funcionário</label>
-                <input type="number" id="login-id" placeholder="Digite seu ID" onkeypress="handleEnter(event)" style="width: 100%;">
-            </div>
-
-            <div class="input-group" style="text-align: left; margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Senha de Acesso</label>
-                <input type="password" id="senha" placeholder="••••••••" onkeypress="handleEnter(event)" style="width: 100%;">
-            </div>
-
-            <button class="btn-save" onclick="fazerLogin()" id="btn-entrar">Acessar Sistema</button>
-            <div class="error-msg" id="error-msg" style="color:var(--danger); margin-top:15px; display:none; background:#fee2e2; padding:10px; border-radius:6px;">ID ou senha incorretos.</div>
-        </div>
-        
-        <div class="footer-text" style="margin-top: 20px; color: var(--text-muted); font-size: 0.8rem;">
-            &copy; 2025 Gestão Integrada
-        </div>
-    </div>
-
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/logo.js"></script>
-    
-    <script>
-        // Lógica ORIGINAL de Login restaurada
-        if(localStorage.getItem('usuario')) window.location.href = 'produtividade.html';
-
-        function handleEnter(e) { 
-            if(e.key === 'Enter') fazerLogin(); 
+        if(!idVal || !passVal) { 
+            msg.innerText = "Por favor, informe ID e Senha."; 
+            msg.style.display = 'block'; 
+            return; 
         }
 
-        async function fazerLogin() {
-            const idVal = document.getElementById('login-id').value.trim();
-            const passVal = document.getElementById('senha').value.trim();
-            const btn = document.getElementById('btn-entrar');
-            const msg = document.getElementById('error-msg');
+        btn.disabled = true;
+        btn.innerText = "Entrando...";
 
-            msg.style.display = 'none';
-            
-            if(!idVal || !passVal) { 
-                msg.innerText = "Por favor, informe ID e Senha."; 
-                msg.style.display = 'block'; 
-                return; 
+        try {
+            // Consulta no Supabase
+            const { data, error } = await _supabase
+                .from('usuarios')
+                .select('*')
+                .eq('id', idVal)
+                .eq('senha', passVal)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data) {
+                // Salva a sessão no formato antigo (para compatibilidade)
+                localStorage.setItem('usuario', JSON.stringify(data));
+                
+                // MUDANÇA AQUI: Redireciona para o novo painel unificado
+                window.location.href = 'painel.html';
+            } else { 
+                throw new Error("Não encontrado"); 
             }
 
-            btn.disabled = true;
-            btn.innerText = "Entrando...";
-
-            try {
-                // Consulta original por ID
-                const { data, error } = await _supabase
-                    .from('usuarios')
-                    .select('*')
-                    .eq('id', idVal)
-                    .eq('senha', passVal)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (data) {
-                    localStorage.setItem('usuario', JSON.stringify(data));
-                    window.location.href = 'produtividade.html';
-                } else { 
-                    throw new Error("Não encontrado"); 
-                }
-
-            } catch (err) {
-                console.error(err);
-                msg.innerText = "Credenciais inválidas."; 
-                msg.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = "Acessar Sistema";
-            }
+        } catch (err) {
+            console.error(err);
+            msg.innerText = "Credenciais inválidas."; 
+            msg.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = "Acessar Sistema";
         }
-    </script>
-</body>
-</html>
+    }
+</script>
